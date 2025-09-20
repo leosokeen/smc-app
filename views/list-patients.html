@@ -10,57 +10,141 @@
   <style>
     body {
       font-family: 'Poppins', sans-serif;
-      background-color: var(--bs-body-bg);
+      background: linear-gradient(145deg, #f8f7fb, #ffffff);
+      color: #222;
+      transition: background 0.4s ease, color 0.4s ease;
     }
+
+    /* 🌙 Dark Mode */
+    body.dark {
+      background: linear-gradient(145deg, #121212, #1e1e1e);
+      color: #f2f2f2;
+    }
+
     .table-custom {
       border-radius: 15px;
       overflow: hidden;
-      box-shadow: 0 4px 12px rgba(155, 89, 182, .15);
+      box-shadow: 0 4px 16px rgba(155, 89, 182, .15);
+      transition: background 0.4s ease, box-shadow 0.4s ease;
     }
+
+    body.dark .table-custom {
+      background: #1e1e1e;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, .6);
+    }
+
     th {
-      background-color: #9b59b6;
+      background: linear-gradient(90deg, #a29bfe, #9b59b6);
       color: white;
+      font-weight: 600;
+      text-align: center;
     }
+
+    td {
+      vertical-align: middle;
+    }
+
     .search-box {
       max-width: 350px;
+      border-radius: 25px;
+      padding-left: 14px;
+      border: 1px solid #ccc;
+      transition: 0.3s;
     }
+
+    .search-box:focus {
+      border-color: #9b59b6;
+      box-shadow: 0 0 6px rgba(155, 89, 182, 0.3);
+    }
+
+    body.dark .search-box {
+      background: #2a2a2a;
+      color: #fff;
+      border-color: #555;
+    }
+
     .pagination-controls {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-top: 1rem;
     }
+
+    .btn-action {
+      border-radius: 30px;
+      padding: 4px 14px;
+      font-size: 0.85rem;
+      transition: all 0.2s ease-in-out;
+    }
+
+    .btn-action:hover {
+      transform: translateY(-2px) scale(1.05);
+    }
+
+    .btn-warning.btn-action {
+      background: #f1c40f;
+      border: none;
+      color: #fff;
+    }
+
+    .btn-danger.btn-action {
+      background: #e74c3c;
+      border: none;
+    }
+
+    .navbar-custom {
+      background: linear-gradient(90deg, #a29bfe, #9b59b6);
+    }
+
+    body.dark .navbar-custom {
+      background: linear-gradient(90deg, #4a3d8c, #6c3483);
+    }
+
+    #darkModeToggle {
+      border-radius: 50%;
+      width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      transition: all 0.3s ease;
+    }
+
+    #darkModeToggle:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
   </style>
 </head>
 
 <body>
-  <nav class="navbar navbar-expand-lg" style="background:linear-gradient(90deg,#a29bfe,#9b59b6);">
+  <nav class="navbar navbar-expand-lg navbar-custom">
     <div class="container">
       <a class="navbar-brand text-white fw-bold" href="/">🏥 SMC JV System</a>
       <div class="navbar-nav ms-auto">
         <a class="nav-link text-white" href="/add-patient">➕ บันทึกข้อมูลผู้ป่วย</a>
         <a class="nav-link text-white" href="/logs">📒 ประวัติ</a>
         <a class="nav-link text-white" href="#" id="logoutBtn">🚪 ออกจากระบบ</a>
-        <button id="darkModeToggle" class="btn btn-sm btn-outline-light ms-3">🌙 Dark Mode</button>
+        <button id="darkModeToggle" class="btn btn-sm btn-outline-light ms-3">🌙</button>
       </div>
     </div>
   </nav>
 
   <div class="container my-5">
     <div class="d-flex justify-content-between align-items-center mb-3">
-      <h3 class="text-primary">📋 รายการผู้ป่วย</h3>
+      <h3 class="fw-bold">📋 รายการผู้ป่วย</h3>
       <input type="text" id="searchInput" class="form-control search-box" placeholder="🔎 ค้นหา...">
     </div>
 
     <div class="table-responsive table-custom">
-      <table class="table table-striped" id="patientTable">
+      <table class="table table-striped align-middle text-center" id="patientTable">
         <thead>
           <tr>
             <th>#</th>
             <th>ชื่อ-สกุล</th>
             <th>ประเภท</th>
             <th>HN</th>
-            <th>วัน/เวลา</th>
+            <th>วัน/เวลาที่เข้ารับบริการ</th>
             <th>บริการ</th>
             <th>บันทึกโดย</th>
             <th>จัดการ</th>
@@ -70,13 +154,12 @@
       </table>
     </div>
 
-    <!-- Pagination Controls -->
     <div class="pagination-controls">
       <div>
         <label for="itemsPerPage" class="form-label me-2">แสดง:</label>
         <select id="itemsPerPage" class="form-select d-inline-block" style="width: auto;">
           <option value="15">15</option>
-          <option value="25" selected>25</option> <!-- ตั้ง 25 เป็นค่าเริ่มต้น -->
+          <option value="25" selected>25</option>
           <option value="50">50</option>
           <option value="100">100</option>
           <option value="all">All</option>
@@ -96,6 +179,14 @@
     let currentPage = 1;
     let itemsPerPage = 25;
 
+    function formatThaiDate(dateStr, timeStr) {
+      if (!dateStr) return "-";
+      const months = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return "-";
+      return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear() + 543} เวลา ${timeStr || ""}`;
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       fetch('/patients/all')
         .then(res => res.json())
@@ -105,73 +196,75 @@
           updatePagination();
         });
 
-      // Event listeners
       document.getElementById('searchInput').addEventListener('input', handleSearch);
       document.getElementById('itemsPerPage').addEventListener('change', handleItemsPerPageChange);
       document.getElementById('prevPage').addEventListener('click', () => changePage(-1));
       document.getElementById('nextPage').addEventListener('click', () => changePage(1));
 
-      // --- เพิ่มส่วนนี้: SweetAlert for CRUD actions ---
-      const params = new URLSearchParams(window.location.search);
-      const action = params.get('action');
-      if (action) {
-        let title = '';
-        if (action === 'created') title = 'บันทึกข้อมูลสำเร็จ!';
-        if (action === 'updated') title = 'แก้ไขข้อมูลสำเร็จ!';
-        if (action === 'deleted') title = 'ลบข้อมูลสำเร็จ!';
-        
-        if (title) {
-          Swal.fire({
-            icon: 'success',
-            title: title,
-            timer: 1500,
-            showConfirmButton: false
-          });
-          // ลบ query param ออกจาก URL เพื่อป้องกันการแสดงซ้ำ
-          window.history.replaceState({}, document.title, window.location.pathname);
-        }
+      // Dark mode toggle
+      const darkBtn = document.getElementById('darkModeToggle');
+      if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark');
+        darkBtn.textContent = '☀️';
       }
-
-      // --- เพิ่มส่วนนี้: SweetAlert for Confirm Delete ---
-      document.body.addEventListener('click', (e) => {
-        if (e.target.classList.contains('delete-btn')) {
-          e.preventDefault();
-          const deleteUrl = e.target.href;
-          
-          Swal.fire({
-            title: 'ยืนยันการลบ?',
-            text: "ข้อมูลจะถูกลบอย่างถาวร!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'ใช่, ลบเลย',
-            cancelButtonText: 'ยกเลิก'
-          }).then((result) => {
-            if (result.isConfirmed) {
-              window.location.href = deleteUrl;
-            }
-          });
+      darkBtn.addEventListener('click', () => {
+        document.body.classList.toggle('dark');
+        if (document.body.classList.contains('dark')) {
+          darkBtn.textContent = '☀️';
+          localStorage.setItem('theme', 'dark');
+        } else {
+          darkBtn.textContent = '🌙';
+          localStorage.setItem('theme', 'light');
         }
+      });
+
+      // ✅ SweetAlert2 สำหรับออกจากระบบ
+      const logoutBtn = document.getElementById('logoutBtn');
+      logoutBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        Swal.fire({
+          title: 'ยืนยันการออกจากระบบ?',
+          text: "คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบ",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#d33',
+          cancelButtonColor: '#3085d6',
+          confirmButtonText: 'ออกจากระบบ',
+          cancelButtonText: 'ยกเลิก'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            window.location.href = '/logout';  // <-- ตรงนี้ใส่ route logout ที่ backend ทำงานจริง
+          }
+        });
       });
     });
 
-    function handleSearch(e) { /* ... โค้ดเดิม ... */ }
-    function handleItemsPerPageChange(e) { /* ... โค้ดเดิม ... */ }
-    function changePage(direction) { /* ... โค้ดเดิม ... */ }
+    function handleSearch(e) {
+      const q = e.target.value.toLowerCase();
+      filteredPatients = allPatients.filter(p =>
+        `${p.title} ${p.firstname} ${p.lastname}`.toLowerCase().includes(q) ||
+        (p.hn || "").toLowerCase().includes(q) ||
+        (p.service_type || "").toLowerCase().includes(q)
+      );
+      currentPage = 1; updatePagination();
+    }
+    function handleItemsPerPageChange(e) {
+      itemsPerPage = e.target.value === 'all' ? 'all' : parseInt(e.target.value);
+      currentPage = 1; updatePagination();
+    }
+    function changePage(dir) {
+      currentPage += dir; updatePagination();
+    }
 
     function updatePagination() {
       const isAll = itemsPerPage === 'all' || itemsPerPage >= filteredPatients.length;
       const totalItems = filteredPatients.length;
       const totalPages = isAll ? 1 : Math.ceil(totalItems / itemsPerPage);
-      
       const start = isAll ? 0 : (currentPage - 1) * itemsPerPage;
       const end = isAll ? totalItems : start + itemsPerPage;
-      const paginatedItems = filteredPatients.slice(start, end);
-
-      renderTable(paginatedItems);
-
-      document.getElementById('pageInfo').textContent = isAll ? `แสดงทั้งหมด ${totalItems} รายการ` : `หน้า ${currentPage} จาก ${totalPages}`;
+      renderTable(filteredPatients.slice(start, end));
+      document.getElementById('pageInfo').textContent =
+        isAll ? `แสดงทั้งหมด ${totalItems} รายการ` : `หน้า ${currentPage} จาก ${totalPages}`;
       document.getElementById('prevPage').disabled = isAll || currentPage === 1;
       document.getElementById('nextPage').disabled = isAll || currentPage === totalPages || totalPages === 0;
     }
@@ -180,27 +273,23 @@
       const tbody = document.getElementById('patientTableBody');
       tbody.innerHTML = '';
       const startIndex = itemsPerPage === 'all' ? 0 : (currentPage - 1) * itemsPerPage;
-      patients.forEach((p, index) => {
-        const displayNumber = startIndex + index + 1;
+      patients.forEach((p, i) => {
         tbody.innerHTML += `
           <tr>
-            <td>${displayNumber}</td>
-            <td>${p.title} ${p.firstname} ${p.lastname}</td>
+            <td>${startIndex + i + 1}</td>
+            <td class="text-start">${p.title} ${p.firstname} ${p.lastname}</td>
             <td>${p.patient_type}</td>
             <td>${p.patient_type === 'รายเก่า' ? (p.hn || '-') : '-'}</td>
-            <td>${p.appointment_date} ${p.appointment_time}</td>
+            <td>${formatThaiDate(p.appointment_date, p.appointment_time)}</td>
             <td>${p.service_type}</td>
             <td>${p.created_by_name || '-'}</td>
             <td>
-              <a href="/patients/edit/${p.id}" class="btn btn-sm btn-warning">แก้ไข</a>
-              <a href="/patients/delete/${p.id}" class="btn btn-sm btn-danger delete-btn">ลบ</a>
+              <a href="/patients/edit/${p.id}" class="btn btn-warning btn-sm btn-action">✏️ แก้ไข</a>
+              <a href="/patients/delete/${p.id}" class="btn btn-danger btn-sm btn-action delete-btn">🗑️ ลบ</a>
             </td>
-          </tr>
-        `;
+          </tr>`;
       });
     }
   </script>
-
-  <script src="/js/main.js"></script>
 </body>
 </html>

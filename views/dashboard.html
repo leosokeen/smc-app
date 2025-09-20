@@ -289,7 +289,7 @@
 
         function applyTheme(mode) {
           document.body.classList.toggle('dark', mode === 'dark');
-          toggleBtn.textContent = mode === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+          toggleBtn.textContent = mode === 'dark' ? '☀️' : '🌙';
         }
       }
 
@@ -305,7 +305,7 @@
             showCancelButton: true,
             confirmButtonColor: '#d33',
             cancelButtonColor: '#3085d6',
-            confirmButtonText: 'ใช่, ออกจากระบบ',
+            confirmButtonText: 'ออกจากระบบ',
             cancelButtonText: 'ยกเลิก'
           }).then((result) => {
             if (result.isConfirmed) {
