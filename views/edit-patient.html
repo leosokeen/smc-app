@@ -145,10 +145,12 @@
 
   <div class="container my-5">
     <div class="form-card">
-      <h3 class="mb-4 text-center text-primary">📝 แก้ไขข้อมูลผู้ป่วย: <%= patient.firstname %> <%= patient.lastname %></h3>
+      <h3 class="mb-4 text-center text-dark-emphasis">📝 แก้ไขข้อมูลผู้ป่วย: <%= patient.firstname %>
+          <%= patient.lastname %>
+      </h3>
 
-      <!-- ฟอร์มยังคงเดิม -->
-      <form action="/patients/update/<%= patient.id %>" method="POST">
+      <!-- ฟอร์มแก้ไข -->
+      <form id="editPatientForm" action="/patients/update/<%= patient.id %>" method="POST">
         <input type="hidden" name="id" value="<%= patient.id %>">
 
         <div class="row g-3">
@@ -218,6 +220,7 @@
   <script src="https://npmcdn.com/flatpickr/dist/l10n/th.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      // Flatpickr date & time
       flatpickr("#appointmentDate", {
         locale: "th",
         dateFormat: "Y-m-d",
@@ -231,6 +234,7 @@
         time_24hr: true,
       });
 
+      // Show/hide HN field
       const patientTypeSelect = document.getElementById('patientType');
       const hnField = document.getElementById('hnField');
       const hnInput = hnField.querySelector('input');
@@ -245,11 +249,10 @@
         }
       });
       if (patientTypeSelect.value === 'รายเก่า') {
-        hnField.style.display = 'flex';
-        hnInput.setAttribute('required', 'true');
+        hnField.style.display = 'flex'; hnInput.setAttribute('required', 'true');
       }
 
-      // SweetAlert Confirm Logout
+      // 🚪 Logout Confirm
       const logoutBtn = document.getElementById('logoutBtn');
       logoutBtn.addEventListener('click', (e) => {
         e.preventDefault();
@@ -262,26 +265,32 @@
           cancelButtonColor: '#3085d6',
           confirmButtonText: 'ออกจากระบบ',
           cancelButtonText: 'ยกเลิก'
-        }).then((res) => {
-          if (res.isConfirmed) { window.location.href = '/auth/logout'; }
-        });
+        }).then((res) => { if (res.isConfirmed) { window.location.href = '/auth/logout'; } });
       });
 
-      // Dark mode toggle
+      // 🌙 Dark Mode toggle
       const darkBtn = document.getElementById('darkModeToggle');
-      if (localStorage.getItem('theme') === 'dark') {
-        document.body.classList.add('dark'); darkBtn.textContent = '☀️';
-      }
+      if (localStorage.getItem('theme') === 'dark') { document.body.classList.add('dark'); darkBtn.textContent = '☀️'; }
       darkBtn.addEventListener('click', () => {
         document.body.classList.toggle('dark');
-        if (document.body.classList.contains('dark')) {
-          darkBtn.textContent = '☀️'; localStorage.setItem('theme', 'dark');
-        } else {
-          darkBtn.textContent = '🌙'; localStorage.setItem('theme', 'light');
-        }
+        if (document.body.classList.contains('dark')) { darkBtn.textContent = '☀️'; localStorage.setItem('theme', 'dark'); }
+        else { darkBtn.textContent = '🌙'; localStorage.setItem('theme', 'light'); }
+      });
+
+      // 💾 Form submit with SweetAlert2 Loading
+      const editForm = document.getElementById('editPatientForm');
+      editForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        Swal.fire({
+          title: 'กำลังบันทึกข้อมูล...',
+          allowOutsideClick: false,
+          didOpen: () => { Swal.showLoading(); }
+        });
+        setTimeout(() => this.submit(), 600); // delay เล็กน้อยให้ user เห็น loading
       });
     });
   </script>
   <script src="/js/main.js"></script>
 </body>
+
 </html>

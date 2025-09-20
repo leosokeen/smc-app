@@ -16,7 +16,6 @@
       transition: background 0.3s ease, color 0.3s ease;
     }
 
-    /* Dark mode */
     body.dark {
       background-color: #121212;
       color: #f8f9fa;
@@ -25,19 +24,43 @@
     /* Navbar */
     .navbar-custom {
       background: linear-gradient(90deg, #a29bfe 0%, #9b59b6 100%);
+      backdrop-filter: blur(6px);
       box-shadow: 0px 4px 15px rgba(155, 89, 182, 0.3);
+      transition: 0.3s ease;
+    }
+
+    body.dark .navbar-custom {
+      background: linear-gradient(90deg, #4b3f72, #7d3ea1);
     }
 
     .navbar-custom .navbar-brand,
     .navbar-custom .nav-link {
       color: #fff !important;
       font-weight: 500;
+      position: relative;
+    }
+
+    .navbar-custom .nav-link::after {
+      content: '';
+      display: block;
+      width: 0;
+      height: 2px;
+      background: #fff;
+      transition: width .3s;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+    }
+
+    .navbar-custom .nav-link:hover::after {
+      width: 100%;
     }
 
     /* Title */
     h1.title {
       font-weight: 700;
       color: #6c5ce7;
+      letter-spacing: 1px;
     }
 
     body.dark h1.title {
@@ -49,10 +72,17 @@
       border-radius: 18px;
       background: #ffffff;
       color: #212529;
-      box-shadow: 0px 5px 20px rgba(155, 89, 182, 0.15);
+      box-shadow: 0px 6px 16px rgba(142, 68, 173, 0.15);
       text-align: center;
-      padding: 25px;
-      transition: background 0.3s ease, color 0.3s ease;
+      padding: 28px;
+      transition: all 0.4s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px) scale(1.02);
+      box-shadow: 0 10px 25px rgba(142, 68, 173, 0.25);
     }
 
     body.dark .stat-card {
@@ -61,7 +91,7 @@
     }
 
     .stat-card h2 {
-      font-size: 2.2rem;
+      font-size: 2.4rem;
       font-weight: bold;
       color: #6c5ce7;
     }
@@ -72,27 +102,45 @@
 
     .stat-card .card-title {
       font-size: 1rem;
-      font-weight: 500;
       color: #555;
     }
 
     body.dark .stat-card .card-title {
-      color: #ddd;
+      color: #bbb;
     }
 
     /* Chart Card */
     .chart-card {
       border-radius: 20px;
-      background: #faf7ff;
-      box-shadow: 0px 3px 12px rgba(142, 68, 173, 0.15);
+      background: linear-gradient(145deg, #faf7ff, #f4f0ff);
+      box-shadow: 0px 4px 16px rgba(142, 68, 173, .15);
       padding: 20px;
       margin-bottom: 20px;
-      transition: background 0.3s ease, color 0.3s ease;
+      transition: all 0.4s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .chart-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(rgba(190, 149, 255, 0.2), transparent 70%);
+      transform: rotate(25deg);
+      transition: 0.6s;
+    }
+
+    .chart-card:hover::before {
+      top: -30%;
+      left: -30%;
     }
 
     body.dark .chart-card {
-      background: #1e1e1e;
-      color: #f8f9fa;
+      background: #1f1f1f;
+      color: #fff;
     }
 
     .chart-card h5 {
@@ -105,38 +153,39 @@
       color: #cbb2ff;
     }
 
-    /* Buttons */
-    .btn-purple {
-      background-color: #9b59b6;
-      border-radius: 30px;
-      padding: 12px 28px;
-      color: #fff;
-      font-weight: 500;
-    }
-
-    .btn-purple:hover {
-      background-color: #8e44ad;
-      color: #fff;
-    }
-
+    /* Buttons Ripple */
+    .btn-purple,
     .btn-outline-purple {
-      border: 2px solid #9b59b6;
-      border-radius: 30px;
-      padding: 12px 28px;
-      color: #9b59b6;
-      font-weight: 500;
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
     }
 
-    .btn-outline-purple:hover {
-      background-color: #9b59b6;
-      color: #fff;
+    .btn-purple::after,
+    .btn-outline-purple::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      background: rgba(255, 255, 255, 0.4);
+      border-radius: 100%;
+      transform: translate(-50%, -50%);
+      transition: width .5s ease, height .5s ease;
+      z-index: -1;
+    }
+
+    .btn-purple:active::after,
+    .btn-outline-purple:active::after {
+      width: 300px;
+      height: 300px;
     }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
-  <!-- Navbar -->
   <nav class="navbar navbar-expand-lg navbar-custom">
     <div class="container">
       <a class="navbar-brand fw-bold" href="/">🏥 SMC JV System</a>
@@ -145,7 +194,7 @@
         <a class="nav-link" href="/list-patients">📋 รายการผู้ป่วย</a>
         <a class="nav-link" href="/logs">📒 ประวัติการใช้งาน</a>
         <a class="nav-link" href="#" id="logoutBtn">🚪 ออกจากระบบ</a>
-        <button id="darkModeToggle" class="btn btn-outline-light ms-3 rounded-pill">🌙 Dark Mode</button>
+        <button id="darkModeToggle" class="btn btn-outline-light ms-3 rounded-pill">🌙</button>
       </div>
     </div>
   </nav>
@@ -161,29 +210,23 @@
     <div class="row g-4 mb-5">
       <div class="col-md-4">
         <div class="stat-card">
-          <h2>
-            <%= totalPatients %>
-          </h2>
+          <h2 class="counter" data-count="<%= totalPatients %>">0</h2>
           <p class="card-title">ผู้ป่วยทั้งหมด</p>
         </div>
       </div>
       <div class="col-md-4">
         <div class="stat-card">
-          <% const newPatient=(typeData.labels.includes('รายใหม่')) ?
-            typeData.values[typeData.labels.indexOf('รายใหม่')] : 0; %>
-            <h2>
-              <%= newPatient %>
-            </h2>
+          <% const newPatient=(typeData.labels.includes('รายใหม่'))? typeData.values[typeData.labels.indexOf('รายใหม่')]
+            : 0; %>
+            <h2 class="counter" data-count="<%= newPatient %>">0</h2>
             <p class="card-title">รายใหม่</p>
         </div>
       </div>
       <div class="col-md-4">
         <div class="stat-card">
-          <% const oldPatient=(typeData.labels.includes('รายเก่า')) ?
-            typeData.values[typeData.labels.indexOf('รายเก่า')] : 0; %>
-            <h2>
-              <%= oldPatient %>
-            </h2>
+          <% const oldPatient=(typeData.labels.includes('รายเก่า'))? typeData.values[typeData.labels.indexOf('รายเก่า')]
+            : 0; %>
+            <h2 class="counter" data-count="<%= oldPatient %>">0</h2>
             <p class="card-title">รายเก่า</p>
         </div>
       </div>
@@ -215,105 +258,71 @@
   <!-- Scripts -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      // --- 1. SweetAlert for Login Success ---
+      // Login success alert
       const params = new URLSearchParams(window.location.search);
       if (params.get('login') === 'success') {
-        Swal.fire({
-          icon: 'success',
-          title: 'เข้าสู่ระบบสำเร็จ!',
-          text: 'ยินดีต้อนรับ <%= username %>',
-          timer: 2000,
-          showConfirmButton: false
-        });
-        // Clean up the URL
+        Swal.fire({ icon: 'success', title: 'เข้าสู่ระบบสำเร็จ!', text: 'ยินดีต้อนรับ <%= username %>', timer: 2000, showConfirmButton: false });
         window.history.replaceState({}, document.title, window.location.pathname);
       }
 
-      // --- 2. Chart.js Data and Rendering ---
+      // Chart.js
       const typeData = <%- JSON.stringify(typeData || {}) %>;
       const serviceData = <%- JSON.stringify(serviceData || {}) %>;
       const monthData = <%- JSON.stringify(monthData || {}) %>;
 
-      const fixedTypeValues = (typeData.values || []).map(v => Number(v));
-      const fixedServiceValues = (serviceData.values || []).map(v => Number(v));
-      const fixedMonthValues = (monthData.values || []).map(v => Number(v));
-
       new Chart(document.getElementById('typeChart'), {
         type: 'doughnut',
-        data: {
-          labels: typeData.labels || [],
-          datasets: [{ data: fixedTypeValues, backgroundColor: ['#a29bfe', '#dcd6f7'] }]
-        }
+        data: { labels: typeData.labels || [], datasets: [{ data: (typeData.values || []).map(Number), backgroundColor: ['#a29bfe', '#9b59b6'] }] }
       });
-
       new Chart(document.getElementById('serviceChart'), {
         type: 'bar',
-        data: {
-          labels: serviceData.labels || [],
-          datasets: [{
-            label: 'จำนวนผู้ป่วย',
-            data: fixedServiceValues,
-            backgroundColor: ['#9b59b6', '#a29bfe', '#6c5ce7', '#dcd6f7']
-          }]
-        },
+        data: { labels: serviceData.labels || [], datasets: [{ label: 'จำนวนผู้ป่วย', data: (serviceData.values || []).map(Number), backgroundColor: ['#9b59b6', '#a29bfe', '#6c5ce7', '#dcd6f7'] }] },
         options: { indexAxis: 'y', scales: { x: { beginAtZero: true } } }
       });
-
       new Chart(document.getElementById('monthChart'), {
         type: 'line',
-        data: {
-          labels: monthData.labels || [],
-          datasets: [{
-            label: 'ผู้ป่วยต่อเดือน',
-            data: fixedMonthValues,
-            borderColor: '#6c5ce7',
-            backgroundColor: '#dcd6f7',
-            fill: true,
-            tension: 0.4
-          }]
-        },
+        data: { labels: monthData.labels || [], datasets: [{ label: 'ผู้ป่วยต่อเดือน', data: (monthData.values || []).map(Number), borderColor: '#6c5ce7', backgroundColor: '#dcd6f7', fill: true, tension: 0.4 }] },
         options: { scales: { y: { beginAtZero: true } } }
       });
 
-      // --- 3. Dark Mode Toggle Logic ---
+      // Dark mode toggle
       const toggleBtn = document.getElementById('darkModeToggle');
       if (toggleBtn) {
         let darkMode = localStorage.getItem('theme') === 'dark';
         applyTheme(darkMode ? 'dark' : 'light');
-
         toggleBtn.addEventListener('click', () => {
-          darkMode = !darkMode;
-          localStorage.setItem('theme', darkMode ? 'dark' : 'light');
-          applyTheme(darkMode ? 'dark' : 'light');
+          darkMode = !darkMode; localStorage.setItem('theme', darkMode ? 'dark' : 'light'); applyTheme(darkMode ? 'dark' : 'light');
         });
-
         function applyTheme(mode) {
           document.body.classList.toggle('dark', mode === 'dark');
           toggleBtn.textContent = mode === 'dark' ? '☀️' : '🌙';
         }
       }
 
-      // --- 4. Logout Confirmation Logic ---
+      // Logout confirm
       const logoutBtn = document.getElementById('logoutBtn');
       if (logoutBtn) {
         logoutBtn.addEventListener('click', (e) => {
           e.preventDefault();
-          Swal.fire({
-            title: 'ต้องการออกจากระบบ?',
-            text: "คุณจะต้องเข้าสู่ระบบใหม่อีกครั้ง",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'ออกจากระบบ',
-            cancelButtonText: 'ยกเลิก'
-          }).then((result) => {
-            if (result.isConfirmed) {
-              window.location.href = '/auth/logout';
-            }
-          });
+          Swal.fire({ title: 'ต้องการออกจากระบบ?', text: "คุณจะต้องเข้าสู่ระบบใหม่อีกครั้ง", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6', confirmButtonText: 'ออกจากระบบ', cancelButtonText: 'ยกเลิก' })
+            .then((r) => { if (r.isConfirmed) { window.location.href = '/auth/logout'; } });
         });
       }
+
+      // Counter animation
+      const counters = document.querySelectorAll('.counter');
+      counters.forEach(counter => {
+        const update = () => {
+          const target = +counter.getAttribute('data-count');
+          const current = +counter.innerText;
+          const inc = target / 50; // speed
+          if (current < target) {
+            counter.innerText = Math.ceil(current + inc);
+            setTimeout(update, 30);
+          } else { counter.innerText = target; }
+        };
+        update();
+      });
     });
   </script>
 

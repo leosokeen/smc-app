@@ -15,7 +15,6 @@
       transition: background 0.4s ease, color 0.4s ease;
     }
 
-    /* 🌙 Dark Mode */
     body.dark {
       background: linear-gradient(145deg, #121212, #1e1e1e);
       color: #f2f2f2;
@@ -25,7 +24,7 @@
       border-radius: 15px;
       overflow: hidden;
       box-shadow: 0 4px 16px rgba(155, 89, 182, .15);
-      transition: background 0.4s ease, box-shadow 0.4s ease;
+      transition: 0.4s ease;
     }
 
     body.dark .table-custom {
@@ -74,7 +73,7 @@
       border-radius: 30px;
       padding: 4px 14px;
       font-size: 0.85rem;
-      transition: all 0.2s ease-in-out;
+      transition: all 0.2s;
     }
 
     .btn-action:hover {
@@ -108,7 +107,7 @@
       align-items: center;
       justify-content: center;
       font-size: 18px;
-      transition: all 0.3s ease;
+      transition: all 0.3s;
     }
 
     #darkModeToggle:hover {
@@ -181,7 +180,7 @@
 
     function formatThaiDate(dateStr, timeStr) {
       if (!dateStr) return "-";
-      const months = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
+      const months = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
       const d = new Date(dateStr);
       if (isNaN(d.getTime())) return "-";
       return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear() + 543} เวลา ${timeStr || ""}`;
@@ -201,30 +200,22 @@
       document.getElementById('prevPage').addEventListener('click', () => changePage(-1));
       document.getElementById('nextPage').addEventListener('click', () => changePage(1));
 
-      // Dark mode toggle
+      // 🌗 Dark Mode Toggle
       const darkBtn = document.getElementById('darkModeToggle');
-      if (localStorage.getItem('theme') === 'dark') {
-        document.body.classList.add('dark');
-        darkBtn.textContent = '☀️';
-      }
+      if (localStorage.getItem('theme') === 'dark') { document.body.classList.add('dark'); darkBtn.textContent = '☀️'; }
       darkBtn.addEventListener('click', () => {
         document.body.classList.toggle('dark');
-        if (document.body.classList.contains('dark')) {
-          darkBtn.textContent = '☀️';
-          localStorage.setItem('theme', 'dark');
-        } else {
-          darkBtn.textContent = '🌙';
-          localStorage.setItem('theme', 'light');
-        }
+        if (document.body.classList.contains('dark')) { darkBtn.textContent = '☀️'; localStorage.setItem('theme', 'dark'); }
+        else { darkBtn.textContent = '🌙'; localStorage.setItem('theme', 'light'); }
       });
 
-      // ✅ SweetAlert2 สำหรับออกจากระบบ
+      // 🚪 SweetAlert2 ออกจากระบบ
       const logoutBtn = document.getElementById('logoutBtn');
       logoutBtn.addEventListener('click', (e) => {
         e.preventDefault();
         Swal.fire({
           title: 'ยืนยันการออกจากระบบ?',
-          text: "คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบ",
+          text: "คุณต้องการออกจากระบบ?",
           icon: 'warning',
           showCancelButton: true,
           confirmButtonColor: '#d33',
@@ -233,9 +224,45 @@
           cancelButtonText: 'ยกเลิก'
         }).then((result) => {
           if (result.isConfirmed) {
-            window.location.href = '/logout';  // <-- ตรงนี้ใส่ route logout ที่ backend ทำงานจริง
+            window.location.href = '/logout';
           }
         });
+      });
+
+      // 📢 CRUD Success Alert (สร้าง / แก้ไข / ลบ)
+      const params = new URLSearchParams(window.location.search);
+      const action = params.get('action');
+      if (action) {
+        let title = '', icon = 'success';
+        if (action === 'created') title = '✅ บันทึกข้อมูลสำเร็จ!';
+        if (action === 'updated') title = '✏️ แก้ไขข้อมูลสำเร็จ!';
+        if (action === 'deleted') title = '🗑️ ลบข้อมูลสำเร็จ!';
+        if (title) {
+          Swal.fire({ icon, title, timer: 1500, showConfirmButton: false });
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      }
+
+      // 🗑️ Delete Confirm
+      document.body.addEventListener('click', (e) => {
+        if (e.target.classList.contains('delete-btn')) {
+          e.preventDefault();
+          const deleteUrl = e.target.href;
+          Swal.fire({
+            title: 'ต้องการลบข้อมูล?',
+            text: "ข้อมูลนี้จะถูกลบอย่างถาวร",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e74c3c',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'ใช่, ลบเลย',
+            cancelButtonText: 'ยกเลิก'
+          }).then((result) => {
+            if (result.isConfirmed) {
+              window.location.href = deleteUrl;
+            }
+          });
+        }
       });
     });
 
@@ -252,9 +279,7 @@
       itemsPerPage = e.target.value === 'all' ? 'all' : parseInt(e.target.value);
       currentPage = 1; updatePagination();
     }
-    function changePage(dir) {
-      currentPage += dir; updatePagination();
-    }
+    function changePage(dir) { currentPage += dir; updatePagination(); }
 
     function updatePagination() {
       const isAll = itemsPerPage === 'all' || itemsPerPage >= filteredPatients.length;
@@ -263,8 +288,7 @@
       const start = isAll ? 0 : (currentPage - 1) * itemsPerPage;
       const end = isAll ? totalItems : start + itemsPerPage;
       renderTable(filteredPatients.slice(start, end));
-      document.getElementById('pageInfo').textContent =
-        isAll ? `แสดงทั้งหมด ${totalItems} รายการ` : `หน้า ${currentPage} จาก ${totalPages}`;
+      document.getElementById('pageInfo').textContent = isAll ? `แสดงทั้งหมด ${totalItems} รายการ` : `หน้า ${currentPage} จาก ${totalPages}`;
       document.getElementById('prevPage').disabled = isAll || currentPage === 1;
       document.getElementById('nextPage').disabled = isAll || currentPage === totalPages || totalPages === 0;
     }
@@ -292,4 +316,5 @@
     }
   </script>
 </body>
+
 </html>
