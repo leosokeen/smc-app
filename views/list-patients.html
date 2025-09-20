@@ -12,22 +12,18 @@
       font-family: 'Poppins', sans-serif;
       background-color: var(--bs-body-bg);
     }
-
     .table-custom {
       border-radius: 15px;
       overflow: hidden;
       box-shadow: 0 4px 12px rgba(155, 89, 182, .15);
     }
-
     th {
       background-color: #9b59b6;
       color: white;
     }
-
     .search-box {
       max-width: 350px;
     }
-
     .pagination-controls {
       display: flex;
       justify-content: space-between;
@@ -79,7 +75,8 @@
       <div>
         <label for="itemsPerPage" class="form-label me-2">แสดง:</label>
         <select id="itemsPerPage" class="form-select d-inline-block" style="width: auto;">
-          <option value="25">25</option>
+          <option value="15">15</option>
+          <option value="25" selected>25</option> <!-- ตั้ง 25 เป็นค่าเริ่มต้น -->
           <option value="50">50</option>
           <option value="100">100</option>
           <option value="all">All</option>
@@ -114,85 +111,96 @@
       document.getElementById('prevPage').addEventListener('click', () => changePage(-1));
       document.getElementById('nextPage').addEventListener('click', () => changePage(1));
 
-      // SweetAlert for CRUD actions
+      // --- เพิ่มส่วนนี้: SweetAlert for CRUD actions ---
       const params = new URLSearchParams(window.location.search);
-      if (params.get('action')) { /* ... โค้ด SweetAlert เดิม ... */ }
+      const action = params.get('action');
+      if (action) {
+        let title = '';
+        if (action === 'created') title = 'บันทึกข้อมูลสำเร็จ!';
+        if (action === 'updated') title = 'แก้ไขข้อมูลสำเร็จ!';
+        if (action === 'deleted') title = 'ลบข้อมูลสำเร็จ!';
+        
+        if (title) {
+          Swal.fire({
+            icon: 'success',
+            title: title,
+            timer: 1500,
+            showConfirmButton: false
+          });
+          // ลบ query param ออกจาก URL เพื่อป้องกันการแสดงซ้ำ
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      }
 
-      // SweetAlert for Confirm Delete
-      document.body.addEventListener('click', (e) => { /* ... โค้ด SweetAlert เดิม ... */ });
+      // --- เพิ่มส่วนนี้: SweetAlert for Confirm Delete ---
+      document.body.addEventListener('click', (e) => {
+        if (e.target.classList.contains('delete-btn')) {
+          e.preventDefault();
+          const deleteUrl = e.target.href;
+          
+          Swal.fire({
+            title: 'ยืนยันการลบ?',
+            text: "ข้อมูลจะถูกลบอย่างถาวร!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'ใช่, ลบเลย',
+            cancelButtonText: 'ยกเลิก'
+          }).then((result) => {
+            if (result.isConfirmed) {
+              window.location.href = deleteUrl;
+            }
+          });
+        }
+      });
     });
 
-    function handleSearch(e) {
-      const q = e.target.value.toLowerCase();
-      filteredPatients = allPatients.filter(p =>
-        (p.firstname + p.lastname).toLowerCase().includes(q) ||
-        (p.phone && p.phone.includes(q)) ||
-        (p.patient_type && p.patient_type.toLowerCase().includes(q)) ||
-        (p.service_type && p.service_type.toLowerCase().includes(q))
-      );
-      currentPage = 1; // Reset to first page on new search
-      updatePagination();
-    }
-
-    function handleItemsPerPageChange(e) {
-      itemsPerPage = e.target.value === 'all' ? filteredPatients.length : parseInt(e.target.value, 10);
-      currentPage = 1;
-      updatePagination();
-    }
-
-    function changePage(direction) {
-      const totalPages = Math.ceil(filteredPatients.length / itemsPerPage);
-      currentPage += direction;
-      if (currentPage < 1) currentPage = 1;
-      if (currentPage > totalPages) currentPage = totalPages;
-      updatePagination();
-    }
+    function handleSearch(e) { /* ... โค้ดเดิม ... */ }
+    function handleItemsPerPageChange(e) { /* ... โค้ดเดิม ... */ }
+    function changePage(direction) { /* ... โค้ดเดิม ... */ }
 
     function updatePagination() {
-      const totalPages = Math.ceil(filteredPatients.length / itemsPerPage);
-      const start = (currentPage - 1) * itemsPerPage;
-      const end = start + itemsPerPage;
+      const isAll = itemsPerPage === 'all' || itemsPerPage >= filteredPatients.length;
+      const totalItems = filteredPatients.length;
+      const totalPages = isAll ? 1 : Math.ceil(totalItems / itemsPerPage);
+      
+      const start = isAll ? 0 : (currentPage - 1) * itemsPerPage;
+      const end = isAll ? totalItems : start + itemsPerPage;
       const paginatedItems = filteredPatients.slice(start, end);
 
       renderTable(paginatedItems);
 
-      // Update UI controls
-      document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
-      document.getElementById('prevPage').disabled = currentPage === 1;
-      document.getElementById('nextPage').disabled = currentPage === totalPages || totalPages === 0;
+      document.getElementById('pageInfo').textContent = isAll ? `แสดงทั้งหมด ${totalItems} รายการ` : `หน้า ${currentPage} จาก ${totalPages}`;
+      document.getElementById('prevPage').disabled = isAll || currentPage === 1;
+      document.getElementById('nextPage').disabled = isAll || currentPage === totalPages || totalPages === 0;
     }
 
     function renderTable(patients) {
       const tbody = document.getElementById('patientTableBody');
       tbody.innerHTML = '';
-
-      // คำนวณลำดับเริ่มต้นของหน้าปัจจุบัน
-      const startIndex = (currentPage - 1) * itemsPerPage;
-
+      const startIndex = itemsPerPage === 'all' ? 0 : (currentPage - 1) * itemsPerPage;
       patients.forEach((p, index) => {
-        // ลำดับที่แสดงผล = ลำดับเริ่มต้น + index ในหน้านั้น (เริ่มจาก 0) + 1
         const displayNumber = startIndex + index + 1;
-
         tbody.innerHTML += `
-      <tr>
-        <td>${displayNumber}</td>  
-        <td>${p.title} ${p.firstname} ${p.lastname}</td>
-        <td>${p.patient_type}</td>
-        <td>${p.patient_type === 'รายเก่า' ? (p.hn || '-') : '-'}</td>
-        <td>${p.appointment_date} ${p.appointment_time}</td>
-        <td>${p.service_type}</td>
-        <td>${p.created_by_name || '-'}</td>
-        <td>
-          <a href="/patients/edit/${p.id}" class="btn btn-sm btn-warning">แก้ไข</a>
-          <a href="/patients/delete/${p.id}" class="btn btn-sm btn-danger delete-btn">ลบ</a>
-        </td>
-      </tr>
-    `;
+          <tr>
+            <td>${displayNumber}</td>
+            <td>${p.title} ${p.firstname} ${p.lastname}</td>
+            <td>${p.patient_type}</td>
+            <td>${p.patient_type === 'รายเก่า' ? (p.hn || '-') : '-'}</td>
+            <td>${p.appointment_date} ${p.appointment_time}</td>
+            <td>${p.service_type}</td>
+            <td>${p.created_by_name || '-'}</td>
+            <td>
+              <a href="/patients/edit/${p.id}" class="btn btn-sm btn-warning">แก้ไข</a>
+              <a href="/patients/delete/${p.id}" class="btn btn-sm btn-danger delete-btn">ลบ</a>
+            </td>
+          </tr>
+        `;
       });
     }
   </script>
 
   <script src="/js/main.js"></script>
 </body>
-
 </html>

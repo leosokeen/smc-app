@@ -36,9 +36,8 @@
   <div class="container my-5">
     <div class="form-card">
       <h3 class="mb-4 text-center text-primary">➕ บันทึกข้อมูลผู้ป่วย</h3>
-      <!-- เพิ่ม ID ให้กับฟอร์ม -->
       <form id="addPatientForm" action="/patients/add" method="POST">
-        <!-- ... Fields for name, phone, etc. ... -->
+        <!-- Fields for name, phone, patient_type -->
         <div class="row g-3">
           <div class="col-md-2">
             <label>คำนำหน้า</label>
@@ -69,6 +68,8 @@
             <input type="text" class="form-control" name="hn">
           </div>
         </div>
+        
+        <!-- HTML Input สำหรับวันที่และเวลา (ปรับปรุงแล้ว) -->
         <div class="row g-3 mt-3">
           <div class="col-md-6">
             <label>วันที่นัด</label>
@@ -79,6 +80,7 @@
             <input type="text" class="form-control" id="appointmentTime" name="appointment_time" placeholder="เลือกเวลา" required>
           </div>
         </div>
+
         <div class="mt-3">
           <label>ประเภทบริการ</label>
           <select class="form-select" name="service_type" required>
@@ -105,32 +107,49 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      // ... โค้ด Flatpickr และ HN Toggle เหมือนเดิม ...
-      flatpickr("#appointmentDate", { /* ... */ });
-      flatpickr("#appointmentTime", { /* ... */ });
+      // --- Script เพื่อตั้งค่า Flatpickr (ปรับปรุงแล้ว) ---
+      flatpickr("#appointmentDate", {
+        locale: "th",
+        dateFormat: "Y-m-d",     // ค่าที่ส่งไป Server (สำคัญมาก!)
+        altInput: true,
+        altFormat: "j F พ.ศ. Y", // รูปแบบที่แสดงให้ผู้ใช้เห็น (วัน เดือน ปีพ.ศ.)
+        buddhist: true,          // เปิดใช้งานปี พ.ศ.
+        defaultDate: "today"     // ตั้งค่าเริ่มต้นเป็นวันปัจจุบัน
+      });
+
+      flatpickr("#appointmentTime", {
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "H:i",       // รูปแบบ 24 ชั่วโมง
+        time_24hr: true,
+        defaultDate: new Date()  // ตั้งค่าเริ่มต้นเป็นเวลาปัจจุบัน
+      });
+
+      // --- Script ซ่อน/แสดงช่อง HN (เหมือนเดิม) ---
       const patientTypeSelect = document.getElementById('patientType');
       const hnField = document.getElementById('hnField');
-      patientTypeSelect.addEventListener('change', () => { /* ... */ });
+      const hnInput = hnField.querySelector('input');
+      patientTypeSelect.addEventListener('change', () => {
+        if (patientTypeSelect.value === 'รายเก่า') {
+          hnField.style.display = 'flex';
+          hnInput.setAttribute('required', 'true');
+        } else {
+          hnField.style.display = 'none';
+          hnInput.removeAttribute('required');
+          hnInput.value = '';
+        }
+      });
 
-      // --- เพิ่มส่วนนี้: Process Bar ตอน Submit Form ---
+      // --- Process Bar ตอน Submit Form (เหมือนเดิม) ---
       const addPatientForm = document.getElementById('addPatientForm');
       addPatientForm.addEventListener('submit', function(e) {
-        e.preventDefault(); // หยุดการ submit ปกติ
-
+        e.preventDefault();
         Swal.fire({
           title: 'กำลังบันทึกข้อมูล...',
-          text: 'กรุณารอสักครู่',
           allowOutsideClick: false,
-          didOpen: () => {
-            Swal.showLoading();
-          }
+          didOpen: () => Swal.showLoading()
         });
-
-        // ส่งฟอร์มหลังจากแสดง alert
-        // ใช้ setTimeout เล็กน้อยเพื่อให้ alert แสดงผลก่อน
-        setTimeout(() => {
-          this.submit();
-        }, 500); // 0.5 วินาที
+        setTimeout(() => this.submit(), 500);
       });
     });
   </script>
