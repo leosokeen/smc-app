@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SMC-JV System (login)</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Sarabun:wght@400;600&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-purple: #7c3aed;
+      --secondary-purple: #a78bfa;
+      --dark-purple: #5b21b6;
+      --light-purple: #ede9fe;
+      --accent-purple: #8b5cf6;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Kanit', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Animated Background */
+    .bg-animation {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      z-index: -1;
+    }
+
+    .bg-animation::before {
+      content: '';
+      position: absolute;
+      width: 200%;
+      height: 200%;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      animation: bgMove 20s linear infinite;
+    }
+
+    @keyframes bgMove {
+      0% {
+        transform: translate(0, 0);
+      }
+
+      100% {
+        transform: translate(-50%, -50%);
+      }
+    }
+
+    /* Login Card */
+    .login-container {
+      width: 100%;
+      max-width: 480px;
+      padding: 20px;
+    }
+
+    .login-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 30px;
+      padding: 50px 40px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .login-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(139, 92, 246, 0.1), transparent);
+      transform: rotate(45deg);
+      animation: shimmer 3s infinite;
+    }
+
+    @keyframes shimmer {
+      0% {
+        transform: translateX(-100%) rotate(45deg);
+      }
+
+      100% {
+        transform: translateX(100%) rotate(45deg);
+      }
+    }
+
+    /* Hospital Logo Area */
+    .hospital-logo {
+      text-align: center;
+      margin-bottom: 30px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .logo-circle {
+      width: 100px;
+      height: 100px;
+      background: linear-gradient(135deg, var(--primary-purple), var(--accent-purple));
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 30px rgba(124, 58, 237, 0.3);
+      animation: pulse 2s infinite;
+    }
+
+    .logo-circle img {
+      width: 70%;
+      height: auto;
+      object-fit: contain;
+      display: block;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+        box-shadow: 0 10px 30px rgba(124, 58, 237, 0.3);
+      }
+
+      50% {
+        transform: scale(1.05);
+        box-shadow: 0 10px 40px rgba(124, 58, 237, 0.4);
+      }
+
+      100% {
+        transform: scale(1);
+        box-shadow: 0 10px 30px rgba(124, 58, 237, 0.3);
+      }
+    }
+
+    .logo-circle i {
+      font-size: 45px;
+      color: white;
+    }
+
+    .login-title {
+      font-weight: 600;
+      text-align: center;
+      color: var(--dark-purple);
+      margin-top: 20px;
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+
+    .login-subtitle {
+      text-align: center;
+      color: #ecedf0;
+      margin-bottom: 30px;
+      font-size: 16px;
+    }
+
+    /* Form Styling */
+    .form-group {
+      margin-bottom: 25px;
+      position: relative;
+    }
+
+    .form-label {
+      font-weight: 500;
+      color: var(--dark-purple);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-label i {
+      font-size: 18px;
+    }
+
+    .form-control {
+      border: 2px solid var(--light-purple);
+      border-radius: 15px;
+      padding: 15px 20px;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      background-color: #fafafa;
+    }
+
+    .form-control:focus {
+      border-color: var(--accent-purple);
+      box-shadow: 0 0 0 0.2rem rgba(139, 92, 246, 0.25);
+      background-color: white;
+    }
+
+    /* Submit Button */
+    .btn-login {
+      background: linear-gradient(135deg, var(--primary-purple), var(--accent-purple));
+      color: white;
+      border: none;
+      border-radius: 15px;
+      padding: 15px 30px;
+      width: 100%;
+      font-weight: 600;
+      font-size: 18px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      margin-top: 20px;
+    }
+
+    .btn-login:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(124, 58, 237, 0.3);
+    }
+
+    .btn-login:active {
+      transform: translateY(0);
+    }
+
+    .btn-login:disabled {
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+
+    /* Loading Overlay */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    .loading-content {
+      text-align: center;
+      color: white;
+    }
+
+    .loading-spinner {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 20px;
+      position: relative;
+    }
+
+    .loading-spinner::before,
+    .loading-spinner::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+    }
+
+    .loading-spinner::before {
+      width: 100%;
+      height: 100%;
+      border: 4px solid transparent;
+      border-top-color: var(--secondary-purple);
+      animation: spin 1s linear infinite;
+    }
+
+    .loading-spinner::after {
+      width: 70%;
+      height: 70%;
+      border: 4px solid transparent;
+      border-bottom-color: white;
+      top: 15%;
+      left: 15%;
+      animation: spin 0.8s linear infinite reverse;
+    }
+
+    a {
+      text-decoration: none;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .loading-text {
+      font-size: 20px;
+      font-weight: 500;
+      animation: fadeInOut 1.5s ease-in-out infinite;
+    }
+
+    @keyframes fadeInOut {
+
+      0%,
+      100% {
+        opacity: 0.5;
+      }
+
+      50% {
+        opacity: 1;
+      }
+    }
+
+    /* Footer */
+    .login-footer {
+      text-align: center;
+      margin-top: 30px;
+      color: #9ca3af;
+      font-size: 14px;
+    }
+
+    .thai-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--light-purple);
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 12px;
+      color: var(--dark-purple);
+      margin-top: 15px;
+    }
+
+    /* Responsive */
+    @media (max-width: 576px) {
+      .login-card {
+        padding: 40px 25px;
+      }
+
+      .login-title {
+        font-size: 24px;
+      }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+  <!-- Animated Background -->
+  <div class="bg-animation"></div>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">กำลังตรวจสอบข้อมูล...</div>
+    </div>
+  </div>
+
+  <!-- Login Container -->
+  <div class="login-container">
+    <div class="hospital-logo">
+      <div class="logo-circle">
+        <img src="/images/logo1.png" alt="ตราโรงพยาบาล">
+      </div>
+    </div>
+
+    <h2 class="login-title">SMC-JV Login</h2>
+    <p class="login-subtitle">โรงพยาบาลจิตเวชนครพนมราชนครินทร์</p>
+
+    <form id="loginForm" action="/auth/login" method="POST">
+      <div class="form-group">
+        <label class="form-label">
+          <i class="fas fa-user-md"></i>
+          ชื่อผู้ใช้งาน
+        </label>
+        <input type="text" class="form-control" name="username" placeholder="กรอกชื่อผู้ใช้งาน" required
+          autocomplete="username">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">
+          <i class="fas fa-lock"></i>
+          รหัสผ่าน
+        </label>
+        <input type="password" class="form-control" name="password" placeholder="กรอกรหัสผ่าน" required
+          autocomplete="current-password">
+      </div>
+
+      <button type="submit" class="btn-login" id="loginBtn">
+        <i class="fas fa-sign-in-alt"></i> เข้าสู่ระบบ
+      </button>
+    </form>
+
+    <div class="login-footer">
+      <div class="thai-badge">
+        <i class="fas fa-flag"></i>
+        <a href="https://www.npmrph.go.th/">โรงพยาบาลจิตเวชนครพนมราชนครินทร์</a>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Check for error parameters
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('error') === 'invalid') {
+        Swal.fire({
+          icon: 'error',
+          title: 'เข้าสู่ระบบไม่สำเร็จ',
+          text: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง',
+          confirmButtonColor: '#7c3aed',
+          confirmButtonText: 'ลองอีกครั้ง',
+          showClass: {
+            popup: 'animate__animated animate__fadeInDown'
+          },
+          hideClass: {
+            popup: 'animate__animated animate__fadeOutUp'
+          }
+        });
+      }
+
+      // Form submission handler
+      const loginForm = document.getElementById('loginForm');
+      const loginBtn = document.getElementById('loginBtn');
+      const loadingOverlay = document.getElementById('loadingOverlay');
+      let isSubmitting = false;
+
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // Prevent double submission
+        if (isSubmitting) return;
+        isSubmitting = true;
+
+        // Disable button and show loading
+        loginBtn.disabled = true;
+        loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังเข้าสู่ระบบ...';
+
+        // Show loading overlay
+        loadingOverlay.style.display = 'flex';
+
+        // Simulate loading time (remove this in production)
+        setTimeout(() => {
+          loginForm.submit();
+        }, 1500);
+      });
+
+      // Add input animations
+      const inputs = document.querySelectorAll('.form-control');
+      inputs.forEach(input => {
+        input.addEventListener('focus', () => {
+          input.parentElement.style.transform = 'scale(1.02)';
+        });
+
+        input.addEventListener('blur', () => {
+          input.parentElement.style.transform = 'scale(1)';
+        });
+      });
+    });
+  </script>
+</body>
+
+</html>

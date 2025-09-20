@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+  <meta charset="UTF-8">
+  <title>SMC-JV System (list)</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--bs-body-bg);
+    }
+
+    .table-custom {
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(155, 89, 182, .15);
+    }
+
+    th {
+      background-color: #9b59b6;
+      color: white;
+    }
+
+    .search-box {
+      max-width: 350px;
+    }
+
+    .pagination-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar navbar-expand-lg" style="background:linear-gradient(90deg,#a29bfe,#9b59b6);">
+    <div class="container">
+      <a class="navbar-brand text-white fw-bold" href="/">🏥 SMC JV System</a>
+      <div class="navbar-nav ms-auto">
+        <a class="nav-link text-white" href="/add-patient">➕ บันทึกข้อมูลผู้ป่วย</a>
+        <a class="nav-link text-white" href="/logs">📒 ประวัติ</a>
+        <a class="nav-link text-white" href="#" id="logoutBtn">🚪 ออกจากระบบ</a>
+        <button id="darkModeToggle" class="btn btn-sm btn-outline-light ms-3">🌙 Dark Mode</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container my-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h3 class="text-primary">📋 รายการผู้ป่วย</h3>
+      <input type="text" id="searchInput" class="form-control search-box" placeholder="🔎 ค้นหา...">
+    </div>
+
+    <div class="table-responsive table-custom">
+      <table class="table table-striped" id="patientTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>ชื่อ-สกุล</th>
+            <th>ประเภท</th>
+            <th>HN</th>
+            <th>วัน/เวลา</th>
+            <th>บริการ</th>
+            <th>บันทึกโดย</th>
+            <th>จัดการ</th>
+          </tr>
+        </thead>
+        <tbody id="patientTableBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div class="pagination-controls">
+      <div>
+        <label for="itemsPerPage" class="form-label me-2">แสดง:</label>
+        <select id="itemsPerPage" class="form-select d-inline-block" style="width: auto;">
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+          <option value="all">All</option>
+        </select>
+      </div>
+      <div class="d-flex align-items-center">
+        <span id="pageInfo" class="me-3"></span>
+        <button id="prevPage" class="btn btn-secondary me-2">&lt; Previous</button>
+        <button id="nextPage" class="btn btn-secondary">Next &gt;</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let allPatients = [];
+    let filteredPatients = [];
+    let currentPage = 1;
+    let itemsPerPage = 25;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      fetch('/patients/all')
+        .then(res => res.json())
+        .then(patients => {
+          allPatients = patients;
+          filteredPatients = allPatients;
+          updatePagination();
+        });
+
+      // Event listeners
+      document.getElementById('searchInput').addEventListener('input', handleSearch);
+      document.getElementById('itemsPerPage').addEventListener('change', handleItemsPerPageChange);
+      document.getElementById('prevPage').addEventListener('click', () => changePage(-1));
+      document.getElementById('nextPage').addEventListener('click', () => changePage(1));
+
+      // SweetAlert for CRUD actions
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('action')) { /* ... โค้ด SweetAlert เดิม ... */ }
+
+      // SweetAlert for Confirm Delete
+      document.body.addEventListener('click', (e) => { /* ... โค้ด SweetAlert เดิม ... */ });
+    });
+
+    function handleSearch(e) {
+      const q = e.target.value.toLowerCase();
+      filteredPatients = allPatients.filter(p =>
+        (p.firstname + p.lastname).toLowerCase().includes(q) ||
+        (p.phone && p.phone.includes(q)) ||
+        (p.patient_type && p.patient_type.toLowerCase().includes(q)) ||
+        (p.service_type && p.service_type.toLowerCase().includes(q))
+      );
+      currentPage = 1; // Reset to first page on new search
+      updatePagination();
+    }
+
+    function handleItemsPerPageChange(e) {
+      itemsPerPage = e.target.value === 'all' ? filteredPatients.length : parseInt(e.target.value, 10);
+      currentPage = 1;
+      updatePagination();
+    }
+
+    function changePage(direction) {
+      const totalPages = Math.ceil(filteredPatients.length / itemsPerPage);
+      currentPage += direction;
+      if (currentPage < 1) currentPage = 1;
+      if (currentPage > totalPages) currentPage = totalPages;
+      updatePagination();
+    }
+
+    function updatePagination() {
+      const totalPages = Math.ceil(filteredPatients.length / itemsPerPage);
+      const start = (currentPage - 1) * itemsPerPage;
+      const end = start + itemsPerPage;
+      const paginatedItems = filteredPatients.slice(start, end);
+
+      renderTable(paginatedItems);
+
+      // Update UI controls
+      document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
+      document.getElementById('prevPage').disabled = currentPage === 1;
+      document.getElementById('nextPage').disabled = currentPage === totalPages || totalPages === 0;
+    }
+
+    function renderTable(patients) {
+      const tbody = document.getElementById('patientTableBody');
+      tbody.innerHTML = '';
+
+      // คำนวณลำดับเริ่มต้นของหน้าปัจจุบัน
+      const startIndex = (currentPage - 1) * itemsPerPage;
+
+      patients.forEach((p, index) => {
+        // ลำดับที่แสดงผล = ลำดับเริ่มต้น + index ในหน้านั้น (เริ่มจาก 0) + 1
+        const displayNumber = startIndex + index + 1;
+
+        tbody.innerHTML += `
+      <tr>
+        <td>${displayNumber}</td>  
+        <td>${p.title} ${p.firstname} ${p.lastname}</td>
+        <td>${p.patient_type}</td>
+        <td>${p.patient_type === 'รายเก่า' ? (p.hn || '-') : '-'}</td>
+        <td>${p.appointment_date} ${p.appointment_time}</td>
+        <td>${p.service_type}</td>
+        <td>${p.created_by_name || '-'}</td>
+        <td>
+          <a href="/patients/edit/${p.id}" class="btn btn-sm btn-warning">แก้ไข</a>
+          <a href="/patients/delete/${p.id}" class="btn btn-sm btn-danger delete-btn">ลบ</a>
+        </td>
+      </tr>
+    `;
+      });
+    }
+  </script>
+
+  <script src="/js/main.js"></script>
+</body>
+
+</html>
