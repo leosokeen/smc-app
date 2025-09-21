@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
     htmlTag.setAttribute("data-bs-theme", mode);
     document.body.classList.toggle("dark", mode === "dark");
     if (toggleBtn) {
-      toggleBtn.innerText = (mode === "light") ? "🌙 Dark Mode" : "☀️ Light Mode";
+      toggleBtn.innerText = (mode === "light") ? "🌙" : "☀️";
     }
   }
 

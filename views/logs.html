@@ -211,6 +211,7 @@
       prevPage.addEventListener('click', () => changePage(-1));
       nextPage.addEventListener('click', () => changePage(1));
 
+      // Dark Mode Toggle - โค้ดส่วนนี้ถูกต้องแล้ว แสดงแค่ไอคอน
       const darkBtn = document.getElementById('darkModeToggle');
       if (localStorage.getItem('theme') === 'dark') { document.body.classList.add('dark'); darkBtn.textContent = '☀️'; }
       darkBtn.addEventListener('click', () => {
@@ -219,10 +220,14 @@
         else { darkBtn.textContent = '🌙'; localStorage.setItem('theme', 'light'); }
       });
 
-      logoutBtn.addEventListener('click', e => {
+      // Logout confirm
+      document.getElementById('logoutBtn').addEventListener('click', e => {
         e.preventDefault();
-        Swal.fire({ title: 'ต้องการออกจากระบบ?', icon: 'warning', showCancelButton: true, confirmButtonText: 'ออกจากระบบ', cancelButtonText: 'ยกเลิก' })
-          .then(r => { if (r.isConfirmed) window.location.href = '/auth/logout'; });
+        Swal.fire({
+          title: 'ต้องการออกจากระบบ?', text: "คุณจะต้องเข้าสู่ระบบใหม่อีกครั้ง", icon: 'warning',
+          showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6',
+          confirmButtonText: 'ออกจากระบบ', cancelButtonText: 'ยกเลิก'
+        }).then((r) => { if (r.isConfirmed) { window.location.href = '/auth/logout'; } });
       });
     });
 
