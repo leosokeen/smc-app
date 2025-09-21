@@ -109,41 +109,51 @@
       margin-top: 1.5rem;
     }
 
+    /* ✅ ปุ่ม Dark/Light Mode ที่ปรับแล้ว */
     #darkModeToggle {
+      background: transparent;
+      border: none;
+      color: #fff;
       border-radius: 50%;
-      width: 38px;
-      height: 38px;
+      width: 42px;
+      height: 42px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
+      font-size: 20px;
       transition: all 0.3s ease;
+      cursor: pointer;
     }
 
     #darkModeToggle:hover {
       background: rgba(255, 255, 255, 0.15);
+      transform: rotate(15deg);
+    }
+
+    body.dark #darkModeToggle {
+      color: #f1c40f;
     }
   </style>
 </head>
 
 <body>
-  <!-- ✅ Responsive Navbar -->
+  <!-- Responsive Navbar -->
   <nav class="navbar navbar-expand-lg navbar-custom">
     <div class="container">
       <a class="navbar-brand fw-bold" href="/">🏥 SMC JV System</a>
-      <!-- Hamburger button -->
       <button class="navbar-toggler text-white border-0" type="button" data-bs-toggle="collapse"
         data-bs-target="#navbarMenu">
         ☰
       </button>
       <div class="collapse navbar-collapse" id="navbarMenu">
-        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
           <li class="nav-item"><a class="nav-link text-white" href="/add-patient">➕ เพิ่มผู้ป่วย</a></li>
           <li class="nav-item"><a class="nav-link text-white" href="/list-patients">📋 รายการผู้ป่วย</a></li>
           <li class="nav-item"><a class="nav-link text-white" href="/dashboard">📊 แดชบอร์ด</a></li>
           <li class="nav-item"><a class="nav-link text-white" href="#" id="logoutBtn">🚪 ออกจากระบบ</a></li>
           <li class="nav-item">
-            <button id="darkModeToggle" class="btn btn-outline-light mt-2 mt-lg-0 w-100">🌙</button>
+            <!-- ✅ ปุ่ม Dark/Light ที่ปรับแล้ว (เอา class bootstrap ออก) -->
+            <button id="darkModeToggle" class="ms-lg-2">🌙</button>
           </li>
         </ul>
       </div>
@@ -170,43 +180,37 @@
       </table>
     </div>
 
-    <!-- Pagination Controls -->
+    <!-- Pagination -->
     <div class="pagination-controls">
       <div>
-        <label for="itemsPerPage" class="form-label me-2">แสดง:</label>
-        <select id="itemsPerPage" class="form-select d-inline-block" style="width: auto;">
-          <option value="15">15</option>
-          <option value="25">25</option>
-          <option value="50">50</option>
-          <option value="100">100</option>
-          <option value="all">All</option>
+        <label for="itemsPerPage">แสดง:</label>
+        <select id="itemsPerPage" class="form-select d-inline-block" style="width:auto;">
+          <option>15</option>
+          <option>25</option>
+          <option>50</option>
+          <option>100</option>
+          <option>All</option>
         </select>
       </div>
-      <div class="d-flex align-items-center">
+      <div>
         <span id="pageInfo" class="me-3"></span>
-        <button id="prevPage" class="btn btn-secondary me-2">&lt; Previous</button>
+        <button id="prevPage" class="btn btn-secondary">&lt; Previous</button>
         <button id="nextPage" class="btn btn-secondary">Next &gt;</button>
       </div>
     </div>
   </div>
 
   <script>
-    let allLogs = [];
-    let filteredLogs = [];
-    let currentPage = 1;
-    let itemsPerPage = 15;
+    let allLogs = [], filteredLogs = [], currentPage = 1, itemsPerPage = 15;
 
     document.addEventListener('DOMContentLoaded', () => {
-      fetch('/logs/all')
-        .then(res => res.json())
-        .then(logs => { allLogs = logs; filteredLogs = allLogs; updatePagination(); });
+      fetch('/logs/all').then(res => res.json()).then(logs => { allLogs = logs; filteredLogs = logs; updatePagination(); });
 
-      document.getElementById('searchInput').addEventListener('input', handleSearch);
-      document.getElementById('itemsPerPage').addEventListener('change', handleItemsPerPageChange);
-      document.getElementById('prevPage').addEventListener('click', () => changePage(-1));
-      document.getElementById('nextPage').addEventListener('click', () => changePage(1));
+      searchInput.addEventListener('input', handleSearch);
+      itemsPerPage.addEventListener('change', handleItemsPerPageChange);
+      prevPage.addEventListener('click', () => changePage(-1));
+      nextPage.addEventListener('click', () => changePage(1));
 
-      // Dark Mode Toggle
       const darkBtn = document.getElementById('darkModeToggle');
       if (localStorage.getItem('theme') === 'dark') { document.body.classList.add('dark'); darkBtn.textContent = '☀️'; }
       darkBtn.addEventListener('click', () => {
@@ -215,65 +219,28 @@
         else { darkBtn.textContent = '🌙'; localStorage.setItem('theme', 'light'); }
       });
 
-      // Logout confirm
-      document.getElementById('logoutBtn').addEventListener('click', e => {
+      logoutBtn.addEventListener('click', e => {
         e.preventDefault();
-        Swal.fire({
-          title: 'ต้องการออกจากระบบ?', text: "คุณจะต้องเข้าสู่ระบบใหม่อีกครั้ง", icon: 'warning',
-          showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6',
-          confirmButtonText: 'ออกจากระบบ', cancelButtonText: 'ยกเลิก'
-        }).then((r) => { if (r.isConfirmed) { window.location.href = '/auth/logout'; } });
+        Swal.fire({ title: 'ต้องการออกจากระบบ?', icon: 'warning', showCancelButton: true, confirmButtonText: 'ออกจากระบบ', cancelButtonText: 'ยกเลิก' })
+          .then(r => { if (r.isConfirmed) window.location.href = '/auth/logout'; });
       });
     });
 
-    function handleSearch(e) {
-      const q = e.target.value.toLowerCase();
-      filteredLogs = allLogs.filter(l =>
-        (l.username && l.username.toLowerCase().includes(q)) ||
-        (l.action && l.action.toLowerCase().includes(q)) ||
-        (l.description && l.description.toLowerCase().includes(q)));
-      currentPage = 1; updatePagination();
-    }
-
-    function handleItemsPerPageChange(e) {
-      itemsPerPage = e.target.value === 'all' ? filteredLogs.length : parseInt(e.target.value, 10);
-      currentPage = 1; updatePagination();
-    }
-
-    function changePage(direction) {
-      if (itemsPerPage === 'all') return;
-      const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
-      currentPage += direction;
-      if (currentPage < 1) currentPage = 1;
-      if (currentPage > totalPages) currentPage = totalPages;
-      updatePagination();
-    }
-
+    function handleSearch(e) { filteredLogs = allLogs.filter(l => (l.username && l.username.toLowerCase().includes(e.target.value.toLowerCase())) || (l.action && l.action.toLowerCase().includes(e.target.value.toLowerCase())) || (l.description && l.description.toLowerCase().includes(e.target.value.toLowerCase()))); currentPage = 1; updatePagination(); }
+    function handleItemsPerPageChange(e) { itemsPerPage = e.target.value === 'all' ? filteredLogs.length : parseInt(e.target.value, 10); currentPage = 1; updatePagination(); }
+    function changePage(dir) { if (itemsPerPage === 'all') return; const totalPages = Math.ceil(filteredLogs.length / itemsPerPage); currentPage += dir; if (currentPage < 1) currentPage = 1; if (currentPage > totalPages) currentPage = totalPages; updatePagination(); }
     function updatePagination() {
       const isAll = itemsPerPage === 'all' || itemsPerPage >= filteredLogs.length;
-      const totalItems = filteredLogs.length;
-      const totalPages = isAll ? 1 : Math.ceil(totalItems / itemsPerPage);
-      const start = isAll ? 0 : (currentPage - 1) * itemsPerPage;
-      const end = isAll ? totalItems : start + itemsPerPage;
-      const paginatedItems = filteredLogs.slice(start, end);
-
-      renderTable(paginatedItems);
-      document.getElementById('pageInfo').textContent = isAll ? `แสดงทั้งหมด ${totalItems} รายการ` : `หน้า ${currentPage} จาก ${totalPages}`;
-      document.getElementById('prevPage').disabled = isAll || currentPage === 1;
-      document.getElementById('nextPage').disabled = isAll || currentPage === totalPages || totalPages === 0;
+      const totalItems = filteredLogs.length; const totalPages = isAll ? 1 : Math.ceil(totalItems / itemsPerPage);
+      const start = isAll ? 0 : (currentPage - 1) * itemsPerPage; const end = isAll ? totalItems : start + itemsPerPage;
+      renderTable(filteredLogs.slice(start, end));
+      pageInfo.textContent = isAll ? `แสดงทั้งหมด ${totalItems} รายการ` : `หน้า ${currentPage} จาก ${totalPages}`;
+      prevPage.disabled = isAll || currentPage === 1; nextPage.disabled = isAll || currentPage === totalPages || totalPages === 0;
     }
-
     function renderTable(logs) {
-      const tbody = document.getElementById('logTableBody');
-      tbody.innerHTML = '';
+      logTableBody.innerHTML = '';
       logs.forEach(l => {
-        tbody.innerHTML += `
-          <tr>
-            <td>${new Date(l.timestamp).toLocaleString('th-TH')}</td>
-            <td>${l.username || '-'}</td>
-            <td><span class="badge bg-${l.action === 'DELETE' ? 'danger' : l.action === 'UPDATE' ? 'warning' : 'success'}">${l.action}</span></td>
-            <td>${l.description}</td>
-          </tr>`;
+        logTableBody.innerHTML += `<tr><td>${new Date(l.timestamp).toLocaleString('th-TH')}</td><td>${l.username || '-'}</td><td><span class="badge bg-${l.action === 'DELETE' ? 'danger' : l.action === 'UPDATE' ? 'warning' : 'success'}">${l.action}</span></td><td>${l.description}</td></tr>`;
       });
     }
   </script>
