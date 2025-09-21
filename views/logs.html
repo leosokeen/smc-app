@@ -108,7 +108,7 @@
       align-items: center;
       margin-top: 1.5rem;
     }
-    
+
     .stat-card {
       border-radius: 20px;
       background: #faf7ff;
@@ -116,6 +116,7 @@
       margin-bottom: 20px;
       box-shadow: 0px 4px 16px rgba(142, 68, 173, .15);
     }
+
     #darkModeToggle {
       background: transparent;
       border: none;
@@ -207,53 +208,130 @@
   </div>
 
   <script>
-    let allLogs = [], filteredLogs = [], currentPage = 1, itemsPerPage = 15;
+    // --- State Variables ---
+    let allLogs = [];
+    let filteredLogs = [];
+    let currentPage = 1;
+    let itemsPerPage = 15;
 
     document.addEventListener('DOMContentLoaded', () => {
-      fetch('/logs/all').then(res => res.json()).then(logs => { allLogs = logs; filteredLogs = logs; updatePagination(); });
-
-      searchInput.addEventListener('input', handleSearch);
-      itemsPerPage.addEventListener('change', handleItemsPerPageChange);
-      prevPage.addEventListener('click', () => changePage(-1));
-      nextPage.addEventListener('click', () => changePage(1));
-
-      // Dark Mode Toggle - โค้ดส่วนนี้ถูกต้องแล้ว แสดงแค่ไอคอน
+      // ✅ 1. ประกาศตัวแปรสำหรับ Element ที่จะใช้งาน
+      const searchInput = document.getElementById('searchInput');
+      const itemsPerPageSelect = document.getElementById('itemsPerPage');
+      const prevPageBtn = document.getElementById('prevPage');
+      const nextPageBtn = document.getElementById('nextPage');
+      const pageInfoSpan = document.getElementById('pageInfo');
+      const logTableBody = document.getElementById('logTableBody');
       const darkBtn = document.getElementById('darkModeToggle');
-      if (localStorage.getItem('theme') === 'dark') { document.body.classList.add('dark'); darkBtn.textContent = '☀️'; }
+      const logoutBtn = document.getElementById('logoutBtn');
+
+      // --- Initial Fetch ---
+      fetch('/logs/all')
+        .then(res => res.json())
+        .then(logs => {
+          allLogs = logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)); // เรียงตามเวลาล่าสุดก่อน
+          filteredLogs = allLogs;
+          updatePagination();
+        });
+
+      // --- Event Listeners ---
+      searchInput.addEventListener('input', handleSearch);
+      itemsPerPageSelect.addEventListener('change', handleItemsPerPageChange);
+      prevPageBtn.addEventListener('click', () => changePage(-1));
+      nextPageBtn.addEventListener('click', () => changePage(1));
+
+      // --- Dark Mode Toggle ---
+      if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark');
+        darkBtn.textContent = '☀️';
+      }
       darkBtn.addEventListener('click', () => {
         document.body.classList.toggle('dark');
-        if (document.body.classList.contains('dark')) { darkBtn.textContent = '☀️'; localStorage.setItem('theme', 'dark'); }
-        else { darkBtn.textContent = '🌙'; localStorage.setItem('theme', 'light'); }
+        if (document.body.classList.contains('dark')) {
+          darkBtn.textContent = '☀️';
+          localStorage.setItem('theme', 'dark');
+        } else {
+          darkBtn.textContent = '🌙';
+          localStorage.setItem('theme', 'light');
+        }
       });
 
-      // Logout confirm
-      document.getElementById('logoutBtn').addEventListener('click', e => {
+      // --- Logout Confirm ---
+      logoutBtn.addEventListener('click', (e) => {
         e.preventDefault();
         Swal.fire({
-          title: 'ต้องการออกจากระบบ?', text: "คุณจะต้องเข้าสู่ระบบใหม่อีกครั้ง", icon: 'warning',
-          showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6',
-          confirmButtonText: 'ออกจากระบบ', cancelButtonText: 'ยกเลิก'
-        }).then((r) => { if (r.isConfirmed) { window.location.href = '/auth/logout'; } });
+          title: 'ต้องการออกจากระบบ?',
+          text: "คุณจะต้องเข้าสู่ระบบใหม่อีกครั้ง",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#d33',
+          cancelButtonColor: '#3085d6',
+          confirmButtonText: 'ออกจากระบบ',
+          cancelButtonText: 'ยกเลิก'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            window.location.href = '/auth/logout';
+          }
+        });
       });
-    });
 
-    function handleSearch(e) { filteredLogs = allLogs.filter(l => (l.username && l.username.toLowerCase().includes(e.target.value.toLowerCase())) || (l.action && l.action.toLowerCase().includes(e.target.value.toLowerCase())) || (l.description && l.description.toLowerCase().includes(e.target.value.toLowerCase()))); currentPage = 1; updatePagination(); }
-    function handleItemsPerPageChange(e) { itemsPerPage = e.target.value === 'all' ? filteredLogs.length : parseInt(e.target.value, 10); currentPage = 1; updatePagination(); }
-    function changePage(dir) { if (itemsPerPage === 'all') return; const totalPages = Math.ceil(filteredLogs.length / itemsPerPage); currentPage += dir; if (currentPage < 1) currentPage = 1; if (currentPage > totalPages) currentPage = totalPages; updatePagination(); }
-    function updatePagination() {
-      const isAll = itemsPerPage === 'all' || itemsPerPage >= filteredLogs.length;
-      const totalItems = filteredLogs.length; const totalPages = isAll ? 1 : Math.ceil(totalItems / itemsPerPage);
-      const start = isAll ? 0 : (currentPage - 1) * itemsPerPage; const end = isAll ? totalItems : start + itemsPerPage;
-      renderTable(filteredLogs.slice(start, end));
-      pageInfo.textContent = isAll ? `แสดงทั้งหมด ${totalItems} รายการ` : `หน้า ${currentPage} จาก ${totalPages}`;
-      prevPage.disabled = isAll || currentPage === 1; nextPage.disabled = isAll || currentPage === totalPages || totalPages === 0;
-    }
-    function renderTable(logs) {
-      logTableBody.innerHTML = '';
-      logs.forEach(l => {
-        logTableBody.innerHTML += `<tr><td>${new Date(l.timestamp).toLocaleString('th-TH')}</td><td>${l.username || '-'}</td><td><span class="badge bg-${l.action === 'DELETE' ? 'danger' : l.action === 'UPDATE' ? 'warning' : 'success'}">${l.action}</span></td><td>${l.description}</td></tr>`;
-      });
-    }
+      // ✅ 2. ย้ายฟังก์ชันทั้งหมดเข้ามาใน DOMContentLoaded เพื่อให้เข้าถึงตัวแปร Element ได้
+      function handleSearch(e) {
+        const query = e.target.value.toLowerCase();
+        filteredLogs = allLogs.filter(log =>
+          (log.username && log.username.toLowerCase().includes(query)) ||
+          (log.action && log.action.toLowerCase().includes(query)) ||
+          (log.description && log.description.toLowerCase().includes(query))
+        );
+        currentPage = 1;
+        updatePagination();
+      }
+
+      function handleItemsPerPageChange(e) {
+        const value = e.target.value;
+        itemsPerPage = value === 'all' ? filteredLogs.length : parseInt(value, 10);
+        currentPage = 1;
+        updatePagination();
+      }
+
+      function changePage(direction) {
+        const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
+        currentPage += direction;
+        // ป้องกันไม่ให้หน้าติดลบหรือเกินจำนวนหน้าทั้งหมด
+        if (currentPage < 1) currentPage = 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+        updatePagination();
+      }
+
+      function updatePagination() {
+        const isAllSelected = itemsPerPageSelect.value === 'all';
+        const totalItems = filteredLogs.length;
+        const totalPages = isAllSelected ? 1 : Math.ceil(totalItems / itemsPerPage);
+
+        const start = isAllSelected ? 0 : (currentPage - 1) * itemsPerPage;
+        const end = isAllSelected ? totalItems : start + itemsPerPage;
+        const paginatedItems = filteredLogs.slice(start, end);
+
+        renderTable(paginatedItems);
+
+        pageInfoSpan.textContent = isAllSelected ? `แสดงทั้งหมด ${totalItems} รายการ` : `หน้า ${currentPage} จาก ${totalPages}`;
+        prevPageBtn.disabled = isAllSelected || currentPage === 1;
+        nextPageBtn.disabled = isAllSelected || currentPage === totalPages || totalItems === 0;
+      }
+
+      function renderTable(logs) {
+        logTableBody.innerHTML = '';
+        logs.forEach(log => {
+          logTableBody.innerHTML += `
+            <tr>
+              <td>${new Date(log.timestamp).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' })}</td>
+              <td>${log.username || '-'}</td>
+              <td><span class="badge bg-${log.action === 'DELETE' ? 'danger' : log.action === 'UPDATE' ? 'warning' : 'success'}">${log.action}</span></td>
+              <td>${log.description}</td>
+            </tr>`;
+        });
+      }
+    });
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
