@@ -117,14 +117,25 @@
 </head>
 
 <body>
+  <!-- ✅ Responsive Navbar -->
   <nav class="navbar navbar-expand-lg navbar-custom">
     <div class="container">
       <a class="navbar-brand text-white fw-bold" href="/">🏥 SMC JV System</a>
-      <div class="navbar-nav ms-auto">
-        <a class="nav-link text-white" href="/add-patient">➕ บันทึกข้อมูลผู้ป่วย</a>
-        <a class="nav-link text-white" href="/logs">📒 ประวัติ</a>
-        <a class="nav-link text-white" href="#" id="logoutBtn">🚪 ออกจากระบบ</a>
-        <button id="darkModeToggle" class="btn btn-sm btn-outline-light ms-3">🌙</button>
+      <!-- Hamburger button -->
+      <button class="navbar-toggler text-white border-0" type="button" data-bs-toggle="collapse"
+        data-bs-target="#navbarMenu">
+        ☰
+      </button>
+      <div class="collapse navbar-collapse" id="navbarMenu">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          <li class="nav-item"><a class="nav-link text-white" href="/add-patient">➕ บันทึกข้อมูลผู้ป่วย</a></li>
+          <li class="nav-item"><a class="nav-link" href="/dashboard">📊 แดชบอร์ด</a></li>
+          <li class="nav-item"><a class="nav-link text-white" href="/logs">📒 ประวัติ</a></li>
+          <li class="nav-item"><a class="nav-link text-white" href="#" id="logoutBtn">🚪 ออกจากระบบ</a></li>
+          <li class="nav-item">
+            <button id="darkModeToggle" class="btn btn-sm btn-outline-light mt-2 mt-lg-0 w-100">🌙</button>
+          </li>
+        </ul>
       </div>
     </div>
   </nav>
@@ -187,20 +198,16 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      fetch('/patients/all')
-        .then(res => res.json())
-        .then(patients => {
-          allPatients = patients;
-          filteredPatients = allPatients;
-          updatePagination();
-        });
+      fetch('/patients/all').then(res => res.json()).then(patients => {
+        allPatients = patients; filteredPatients = allPatients; updatePagination();
+      });
 
       document.getElementById('searchInput').addEventListener('input', handleSearch);
       document.getElementById('itemsPerPage').addEventListener('change', handleItemsPerPageChange);
       document.getElementById('prevPage').addEventListener('click', () => changePage(-1));
       document.getElementById('nextPage').addEventListener('click', () => changePage(1));
 
-      // 🌗 Dark Mode Toggle
+      // 🌙 Dark Mode 
       const darkBtn = document.getElementById('darkModeToggle');
       if (localStorage.getItem('theme') === 'dark') { document.body.classList.add('dark'); darkBtn.textContent = '☀️'; }
       darkBtn.addEventListener('click', () => {
@@ -209,76 +216,40 @@
         else { darkBtn.textContent = '🌙'; localStorage.setItem('theme', 'light'); }
       });
 
-      // 🚪 SweetAlert2 ออกจากระบบ
-      const logoutBtn = document.getElementById('logoutBtn');
-      logoutBtn.addEventListener('click', (e) => {
+      // 🚪 Logout Confirm
+      document.getElementById('logoutBtn').addEventListener('click', e => {
         e.preventDefault();
-        Swal.fire({
-          title: 'ยืนยันการออกจากระบบ?',
-          text: "คุณต้องการออกจากระบบ?",
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#d33',
-          cancelButtonColor: '#3085d6',
-          confirmButtonText: 'ออกจากระบบ',
-          cancelButtonText: 'ยกเลิก'
-        }).then((result) => {
-          if (result.isConfirmed) {
-            window.location.href = '/logout';
-          }
-        });
+        Swal.fire({ title: 'ยืนยันการออกจากระบบ?', text: "คุณต้องการออกจากระบบ?", icon: 'warning', showCancelButton: true, confirmButtonText: 'ออกจากระบบ', cancelButtonText: 'ยกเลิก' })
+          .then(r => { if (r.isConfirmed) window.location.href = '/logout'; });
       });
 
-      // 📢 CRUD Success Alert (สร้าง / แก้ไข / ลบ)
-      const params = new URLSearchParams(window.location.search);
-      const action = params.get('action');
+      // 📢 CRUD Success Alert
+      const params = new URLSearchParams(window.location.search); const action = params.get('action');
       if (action) {
         let title = '', icon = 'success';
         if (action === 'created') title = '✅ บันทึกข้อมูลสำเร็จ!';
         if (action === 'updated') title = '✏️ แก้ไขข้อมูลสำเร็จ!';
         if (action === 'deleted') title = '🗑️ ลบข้อมูลสำเร็จ!';
-        if (title) {
-          Swal.fire({ icon, title, timer: 1500, showConfirmButton: false });
-          window.history.replaceState({}, document.title, window.location.pathname);
-        }
+        if (title) { Swal.fire({ icon, title, timer: 1500, showConfirmButton: false }); window.history.replaceState({}, document.title, window.location.pathname); }
       }
 
-      // 🗑️ Delete Confirm
-      document.body.addEventListener('click', (e) => {
+      // 🗑️ Confirm Delete
+      document.body.addEventListener('click', e => {
         if (e.target.classList.contains('delete-btn')) {
-          e.preventDefault();
-          const deleteUrl = e.target.href;
-          Swal.fire({
-            title: 'ต้องการลบข้อมูล?',
-            text: "ข้อมูลนี้จะถูกลบอย่างถาวร",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#e74c3c',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'ใช่, ลบเลย',
-            cancelButtonText: 'ยกเลิก'
-          }).then((result) => {
-            if (result.isConfirmed) {
-              window.location.href = deleteUrl;
-            }
-          });
+          e.preventDefault(); const deleteUrl = e.target.href;
+          Swal.fire({ title: 'ต้องการลบข้อมูล?', text: "ข้อมูลนี้จะถูกลบอย่างถาวร", icon: 'warning', showCancelButton: true, confirmButtonColor: '#e74c3c', cancelButtonColor: '#6c757d', confirmButtonText: 'ใช่, ลบเลย', cancelButtonText: 'ยกเลิก' })
+            .then(r => { if (r.isConfirmed) window.location.href = deleteUrl; });
         }
       });
     });
 
     function handleSearch(e) {
       const q = e.target.value.toLowerCase();
-      filteredPatients = allPatients.filter(p =>
-        `${p.title} ${p.firstname} ${p.lastname}`.toLowerCase().includes(q) ||
-        (p.hn || "").toLowerCase().includes(q) ||
-        (p.service_type || "").toLowerCase().includes(q)
-      );
+      filteredPatients = allPatients.filter(p => `${p.title} ${p.firstname} ${p.lastname}`.toLowerCase().includes(q)
+        || (p.hn || "").toLowerCase().includes(q) || (p.service_type || "").toLowerCase().includes(q));
       currentPage = 1; updatePagination();
     }
-    function handleItemsPerPageChange(e) {
-      itemsPerPage = e.target.value === 'all' ? 'all' : parseInt(e.target.value);
-      currentPage = 1; updatePagination();
-    }
+    function handleItemsPerPageChange(e) { itemsPerPage = e.target.value === 'all' ? 'all' : parseInt(e.target.value); currentPage = 1; updatePagination(); }
     function changePage(dir) { currentPage += dir; updatePagination(); }
 
     function updatePagination() {
@@ -315,6 +286,7 @@
       });
     }
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>

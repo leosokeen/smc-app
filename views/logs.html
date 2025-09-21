@@ -50,9 +50,11 @@
       font-weight: 700;
       color: var(--primary-purple);
       margin-bottom: 1.5rem;
-      transition: color 0.4s ease;
     }
-    body.dark h2 { color: var(--accent-purple); }
+
+    body.dark h2 {
+      color: var(--accent-purple);
+    }
 
     .table-card {
       border-radius: 18px;
@@ -77,7 +79,9 @@
       color: #fff;
     }
 
-    td { vertical-align: middle; }
+    td {
+      vertical-align: middle;
+    }
 
     .search-box {
       max-width: 340px;
@@ -115,21 +119,33 @@
       font-size: 18px;
       transition: all 0.3s ease;
     }
-    #darkModeToggle:hover { background: rgba(255,255,255,0.15); }
+
+    #darkModeToggle:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
   </style>
 </head>
 
 <body>
-  <!-- Navbar -->
+  <!-- ✅ Responsive Navbar -->
   <nav class="navbar navbar-expand-lg navbar-custom">
     <div class="container">
       <a class="navbar-brand fw-bold" href="/">🏥 SMC JV System</a>
-      <div class="navbar-nav ms-auto">
-        <a class="nav-link" href="/add-patient">➕ เพิ่มผู้ป่วย</a>
-        <a class="nav-link" href="/list-patients">📋 รายการผู้ป่วย</a>
-        <a class="nav-link" href="/">📊 แดชบอร์ด</a>
-        <a class="nav-link" href="#" id="logoutBtn">🚪 ออกจากระบบ</a>
-        <button id="darkModeToggle" class="btn btn-outline-light ms-3">🌙</button>
+      <!-- Hamburger button -->
+      <button class="navbar-toggler text-white border-0" type="button" data-bs-toggle="collapse"
+        data-bs-target="#navbarMenu">
+        ☰
+      </button>
+      <div class="collapse navbar-collapse" id="navbarMenu">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          <li class="nav-item"><a class="nav-link" href="/add-patient">➕ เพิ่มผู้ป่วย</a></li>
+          <li class="nav-item"><a class="nav-link" href="/list-patients">📋 รายการผู้ป่วย</a></li>
+          <li class="nav-item"><a class="nav-link" href="/dashboard">📊 แดชบอร์ด</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" id="logoutBtn">🚪 ออกจากระบบ</a></li>
+          <li class="nav-item">
+            <button id="darkModeToggle" class="btn btn-outline-light mt-2 mt-lg-0 w-100">🌙</button>
+          </li>
+        </ul>
       </div>
     </div>
   </nav>
@@ -137,8 +153,8 @@
   <!-- Content -->
   <div class="container my-5">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>📒 ประวัติการใช้งานระบบ</h2>
-        <input type="text" id="searchInput" class="form-control search-box" placeholder="🔎 ค้นหา...">
+      <h2>📒 ประวัติการใช้งานระบบ</h2>
+      <input type="text" id="searchInput" class="form-control search-box" placeholder="🔎 ค้นหา...">
     </div>
     <div class="table-responsive table-card">
       <table class="table table-striped align-middle" id="logTable">
@@ -156,22 +172,22 @@
 
     <!-- Pagination Controls -->
     <div class="pagination-controls">
-        <div>
-          <label for="itemsPerPage" class="form-label me-2">แสดง:</label>
-          <select id="itemsPerPage" class="form-select d-inline-block" style="width: auto;">
-            <option value="15">15</option>
-            <option value="25">25</option>
-            <option value="50">50</option>
-            <option value="100">100</option>
-            <option value="all">All</option>
-          </select>
-        </div>
-        <div class="d-flex align-items-center">
-          <span id="pageInfo" class="me-3"></span>
-          <button id="prevPage" class="btn btn-secondary me-2">&lt; Previous</button>
-          <button id="nextPage" class="btn btn-secondary">Next &gt;</button>
-        </div>
+      <div>
+        <label for="itemsPerPage" class="form-label me-2">แสดง:</label>
+        <select id="itemsPerPage" class="form-select d-inline-block" style="width: auto;">
+          <option value="15">15</option>
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+          <option value="all">All</option>
+        </select>
       </div>
+      <div class="d-flex align-items-center">
+        <span id="pageInfo" class="me-3"></span>
+        <button id="prevPage" class="btn btn-secondary me-2">&lt; Previous</button>
+        <button id="nextPage" class="btn btn-secondary">Next &gt;</button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -183,51 +199,30 @@
     document.addEventListener('DOMContentLoaded', () => {
       fetch('/logs/all')
         .then(res => res.json())
-        .then(logs => {
-          allLogs = logs;
-          filteredLogs = allLogs;
-          updatePagination();
-        });
+        .then(logs => { allLogs = logs; filteredLogs = allLogs; updatePagination(); });
 
       document.getElementById('searchInput').addEventListener('input', handleSearch);
       document.getElementById('itemsPerPage').addEventListener('change', handleItemsPerPageChange);
       document.getElementById('prevPage').addEventListener('click', () => changePage(-1));
       document.getElementById('nextPage').addEventListener('click', () => changePage(1));
 
-      // Dark/Light Mode Toggle
+      // Dark Mode Toggle
       const darkBtn = document.getElementById('darkModeToggle');
-      if (localStorage.getItem('theme') === 'dark') {
-        document.body.classList.add('dark');
-        darkBtn.textContent = '☀️';
-      }
+      if (localStorage.getItem('theme') === 'dark') { document.body.classList.add('dark'); darkBtn.textContent = '☀️'; }
       darkBtn.addEventListener('click', () => {
         document.body.classList.toggle('dark');
-        if (document.body.classList.contains('dark')) {
-          darkBtn.textContent = '☀️';
-          localStorage.setItem('theme','dark');
-        } else {
-          darkBtn.textContent = '🌙';
-          localStorage.setItem('theme','light');
-        }
+        if (document.body.classList.contains('dark')) { darkBtn.textContent = '☀️'; localStorage.setItem('theme', 'dark'); }
+        else { darkBtn.textContent = '🌙'; localStorage.setItem('theme', 'light'); }
       });
 
-      // SweetAlert Logout confirm
-      document.getElementById('logoutBtn').addEventListener('click', (e) => {
+      // Logout confirm
+      document.getElementById('logoutBtn').addEventListener('click', e => {
         e.preventDefault();
         Swal.fire({
-          title: 'ต้องการออกจากระบบ?',
-          text: "คุณจะต้องเข้าสู่ระบบใหม่อีกครั้ง",
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#d33',
-          cancelButtonColor: '#3085d6',
-          confirmButtonText: 'ออกจากระบบ',
-          cancelButtonText: 'ยกเลิก'
-        }).then((result) => {
-          if (result.isConfirmed) {
-            window.location.href = '/auth/logout';
-          }
-        });
+          title: 'ต้องการออกจากระบบ?', text: "คุณจะต้องเข้าสู่ระบบใหม่อีกครั้ง", icon: 'warning',
+          showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6',
+          confirmButtonText: 'ออกจากระบบ', cancelButtonText: 'ยกเลิก'
+        }).then((r) => { if (r.isConfirmed) { window.location.href = '/auth/logout'; } });
       });
     });
 
@@ -236,16 +231,13 @@
       filteredLogs = allLogs.filter(l =>
         (l.username && l.username.toLowerCase().includes(q)) ||
         (l.action && l.action.toLowerCase().includes(q)) ||
-        (l.description && l.description.toLowerCase().includes(q))
-      );
-      currentPage = 1;
-      updatePagination();
+        (l.description && l.description.toLowerCase().includes(q)));
+      currentPage = 1; updatePagination();
     }
 
     function handleItemsPerPageChange(e) {
       itemsPerPage = e.target.value === 'all' ? filteredLogs.length : parseInt(e.target.value, 10);
-      currentPage = 1;
-      updatePagination();
+      currentPage = 1; updatePagination();
     }
 
     function changePage(direction) {
@@ -261,7 +253,6 @@
       const isAll = itemsPerPage === 'all' || itemsPerPage >= filteredLogs.length;
       const totalItems = filteredLogs.length;
       const totalPages = isAll ? 1 : Math.ceil(totalItems / itemsPerPage);
-
       const start = isAll ? 0 : (currentPage - 1) * itemsPerPage;
       const end = isAll ? totalItems : start + itemsPerPage;
       const paginatedItems = filteredLogs.slice(start, end);
@@ -290,4 +281,5 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="/js/main.js"></script>
 </body>
+
 </html>

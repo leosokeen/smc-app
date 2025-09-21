@@ -30,7 +30,6 @@
       --border-light: #e0e0e0;
     }
 
-    /* Light Mode */
     body {
       font-family: 'Poppins', sans-serif;
       background: linear-gradient(145deg, var(--light-bg), #ffffff);
@@ -38,16 +37,18 @@
       transition: background 0.4s ease, color 0.4s ease;
     }
 
-    /* Dark Mode */
     body.dark {
       background: linear-gradient(145deg, var(--dark-bg), #1a1a1a);
       color: var(--text-light);
     }
 
     .navbar-custom {
-      background: linear-gradient(90deg, var(--secondary-purple) 0%, var(--primary-purple) 100%);
+      background: linear-gradient(90deg, var(--secondary-purple), var(--primary-purple));
       box-shadow: 0 4px 20px rgba(142, 68, 173, 0.4);
-      transition: all 0.4s ease;
+    }
+
+    body.dark .navbar-custom {
+      background: linear-gradient(90deg, #4b3f72, #7d3ea1);
     }
 
     .navbar-custom .nav-link,
@@ -56,7 +57,6 @@
       font-weight: 500;
     }
 
-    /* Form Container */
     .form-container {
       background: #fff;
       border-radius: 16px;
@@ -103,7 +103,6 @@
       color: var(--text-light);
     }
 
-    /* Buttons */
     .btn-submit {
       background: linear-gradient(90deg, var(--primary-purple), var(--accent-purple));
       border: none;
@@ -120,7 +119,6 @@
       box-shadow: 0px 8px 25px rgba(190, 149, 255, 0.4);
     }
 
-    /* Dark Mode Toggle */
     #darkModeToggle {
       border-radius: 50%;
       width: 38px;
@@ -147,14 +145,25 @@
 </head>
 
 <body>
+  <!-- ✅ Responsive Navbar -->
   <nav class="navbar navbar-expand-lg navbar-custom">
     <div class="container">
       <a class="navbar-brand fw-bold" href="/">🏥 SMC JV System</a>
-      <div class="navbar-nav ms-auto">
-        <a class="nav-link" href="/list-patients">📋 รายการผู้ป่วย</a>
-        <a class="nav-link" href="/logs">📒 ประวัติการใช้งาน</a>
-        <a class="nav-link" href="#" id="logoutBtn">🚪 ออกจากระบบ</a>
-        <button id="darkModeToggle" class="btn btn-sm btn-outline-light ms-3">🌙</button>
+      <!-- ปุ่ม Hamburger -->
+      <button class="navbar-toggler text-white border-0" type="button" data-bs-toggle="collapse"
+        data-bs-target="#navbarMenu">
+        ☰
+      </button>
+      <div class="collapse navbar-collapse" id="navbarMenu">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          <li class="nav-item"><a class="nav-link" href="/list-patients">📋 รายการผู้ป่วย</a></li>
+          <li class="nav-item"><a class="nav-link" href="/dashboard">📊 แดชบอร์ด</a></li>
+          <li class="nav-item"><a class="nav-link" href="/logs">📒 ประวัติการใช้งาน</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" id="logoutBtn">🚪 ออกจากระบบ</a></li>
+          <li class="nav-item">
+            <button id="darkModeToggle" class="btn btn-sm btn-outline-light mt-2 mt-lg-0 w-100">🌙</button>
+          </li>
+        </ul>
       </div>
     </div>
   </nav>
@@ -163,7 +172,7 @@
     <div class="form-container">
       <h2 class="form-title">➕ บันทึกข้อมูลผู้ป่วย</h2>
       <form id="addPatientForm" action="/patients/add" method="POST">
-        
+
         <!-- Patient Info -->
         <div class="row g-3 mb-3">
           <div class="col-md-2">
@@ -213,13 +222,11 @@
         <div class="row g-3 mb-3">
           <div class="col-md-6">
             <label class="form-label">วันที่นัด</label>
-            <input type="text" class="form-control" id="appointmentDate" name="appointment_date"
-              placeholder="กรุณาเลือกวันที่" required>
+            <input type="text" class="form-control" id="appointmentDate" name="appointment_date" required>
           </div>
           <div class="col-md-6">
             <label class="form-label">เวลา</label>
-            <input type="text" class="form-control" id="appointmentTime" name="appointment_time"
-              placeholder="กรุณาเลือกเวลา" required>
+            <input type="text" class="form-control" id="appointmentTime" name="appointment_time" required>
           </div>
         </div>
 
@@ -239,7 +246,6 @@
           </select>
         </div>
 
-        <!-- Submit Button -->
         <div class="text-center">
           <button type="submit" class="btn btn-submit">💾 บันทึกข้อมูล</button>
         </div>
@@ -250,89 +256,46 @@
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://npmcdn.com/flatpickr/dist/l10n/th.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    // Flatpickr Date
-    flatpickr("#appointmentDate", {
-      locale: "th",
-      dateFormat: "Y-m-d",
-      altInput: true,
-      altFormat: "j F Y",
-    });
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      flatpickr("#appointmentDate", { locale: "th", dateFormat: "Y-m-d", altInput: true, altFormat: "j F Y" });
+      flatpickr("#appointmentTime", { enableTime: true, noCalendar: true, dateFormat: "H:i", time_24hr: true });
 
-    // Flatpickr Time
-    flatpickr("#appointmentTime", {
-      enableTime: true,
-      noCalendar: true,
-      dateFormat: "H:i",
-      time_24hr: true,
-    });
+      const patientTypeSelect = document.getElementById('patientType');
+      const hnField = document.getElementById('hnField');
+      const hnInput = hnField.querySelector('input');
+      patientTypeSelect.addEventListener('change', () => {
+        if (patientTypeSelect.value === 'รายเก่า') { hnField.style.display = 'flex'; hnInput.setAttribute('required', 'true'); }
+        else { hnField.style.display = 'none'; hnInput.removeAttribute('required'); hnInput.value = ''; }
+      });
 
-    // Show/Hide HN input
-    const patientTypeSelect = document.getElementById('patientType');
-    const hnField = document.getElementById('hnField');
-    const hnInput = hnField.querySelector('input');
-    patientTypeSelect.addEventListener('change', () => {
-      if (patientTypeSelect.value === 'รายเก่า') {
-        hnField.style.display = 'flex';
-        hnInput.setAttribute('required', 'true');
-      } else {
-        hnField.style.display = 'none';
-        hnInput.removeAttribute('required');
-        hnInput.value = '';
-      }
-    });
+      const darkBtn = document.getElementById('darkModeToggle');
+      if (localStorage.getItem('theme') === 'dark') { document.body.classList.add('dark'); darkBtn.textContent = '☀️'; }
+      darkBtn.addEventListener('click', () => {
+        document.body.classList.toggle('dark');
+        if (document.body.classList.contains('dark')) { darkBtn.textContent = '☀️'; localStorage.setItem('theme', 'dark'); }
+        else { darkBtn.textContent = '🌙'; localStorage.setItem('theme', 'light'); }
+      });
 
-    // Dark mode toggle + localStorage remember
-    const darkBtn = document.getElementById('darkModeToggle');
-    if (localStorage.getItem('theme') === 'dark') {
-      document.body.classList.add('dark');
-      darkBtn.textContent = '☀️';
-    }
-    darkBtn.addEventListener('click', () => {
-      document.body.classList.toggle('dark');
-      if (document.body.classList.contains('dark')) {
-        darkBtn.textContent = '☀️';
-        localStorage.setItem('theme', 'dark');
-      } else {
-        darkBtn.textContent = '🌙';
-        localStorage.setItem('theme', 'light');
-      }
-    });
+      const logoutBtn = document.getElementById('logoutBtn');
+      logoutBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        Swal.fire({
+          title: 'ยืนยันการออกจากระบบ?', text: 'คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบ', icon: 'warning',
+          showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6',
+          confirmButtonText: 'ออกจากระบบ', cancelButtonText: 'ยกเลิก'
+        }).then((r) => { if (r.isConfirmed) { window.location.href = '/logout'; } });
+      });
 
-    // ✅ SweetAlert2 ยืนยันออกจากระบบ
-    const logoutBtn = document.getElementById('logoutBtn');
-    logoutBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      Swal.fire({
-        title: 'ยืนยันการออกจากระบบ?',
-        text: 'คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบ',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'ออกจากระบบ',
-        cancelButtonText: 'ยกเลิก'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          window.location.href = '/logout'; // ← แก้เป็น route logout ของระบบจริง
-        }
+      document.getElementById('addPatientForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        Swal.fire({ title: 'กำลังบันทึกข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        setTimeout(() => this.submit(), 500);
       });
     });
-
-    // SweetAlert process bar on submit
-    const addPatientForm = document.getElementById('addPatientForm');
-    addPatientForm.addEventListener('submit', function (e) {
-      e.preventDefault();
-      Swal.fire({
-        title: 'กำลังบันทึกข้อมูล...',
-        allowOutsideClick: false,
-        didOpen: () => Swal.showLoading()
-      });
-      setTimeout(() => this.submit(), 500);
-    });
-  });
-</script>
+  </script>
 </body>
+
 </html>
