@@ -98,4 +98,5 @@ initializeDatabase().catch(err => {
 // เพื่อให้ไฟล์อื่นสามารถเรียกใช้ได้ง่ายๆ และ Pool จะจัดการเรื่อง connection ให้เอง
 module.exports = {
   query: (text, params) => pool.query(text, params),
+  pool: pool // export pool เผื่อมีกรณีที่ต้องการใช้ transaction หรือจัดการ connection เอง
 };
