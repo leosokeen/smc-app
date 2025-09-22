@@ -224,7 +224,7 @@
       document.getElementById('logoutBtn').addEventListener('click', e => {
         e.preventDefault();
         Swal.fire({ title: 'ยืนยันการออกจากระบบ?', text: "คุณต้องการออกจากระบบ?", icon: 'warning', showCancelButton: true, confirmButtonText: 'ออกจากระบบ', cancelButtonText: 'ยกเลิก' })
-          .then(r => { if (r.isConfirmed) window.location.href = '/logout'; });
+          .then(r => { if (r.isConfirmed) window.location.href = '/auth/logout'; });
       });
 
       // 📢 CRUD Success Alert

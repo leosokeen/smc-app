@@ -290,7 +290,7 @@
           title: 'ยืนยันการออกจากระบบ?', text: 'คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบ', icon: 'warning',
           showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6',
           confirmButtonText: 'ออกจากระบบ', cancelButtonText: 'ยกเลิก'
-        }).then((r) => { if (r.isConfirmed) { window.location.href = '/logout'; } });
+        }).then((r) => { if (r.isConfirmed) { window.location.href = '/auth/logout'; } });
       });
 
       document.getElementById('addPatientForm').addEventListener('submit', function (e) {
