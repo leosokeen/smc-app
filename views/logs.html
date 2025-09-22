@@ -229,8 +229,9 @@
       fetch('/logs/all')
         .then(res => res.json())
         .then(logs => {
-          allLogs = logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)); // เรียงตามเวลาล่าสุดก่อน
+          allLogs = logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
           filteredLogs = allLogs;
+          itemsPerPage = parseInt(itemsPerPageSelect.value, 10); // อ่านค่าเริ่มต้นจาก select
           updatePagination();
         });
 
@@ -289,27 +290,34 @@
 
       function handleItemsPerPageChange(e) {
         const value = e.target.value;
-        itemsPerPage = value === 'all' ? filteredLogs.length : parseInt(value, 10);
+        itemsPerPage = value; // เก็บค่า 'all' หรือตัวเลข
         currentPage = 1;
         updatePagination();
       }
 
       function changePage(direction) {
-        const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
+        const totalPages = calculateTotalPages();
         currentPage += direction;
-        // ป้องกันไม่ให้หน้าติดลบหรือเกินจำนวนหน้าทั้งหมด
         if (currentPage < 1) currentPage = 1;
         if (currentPage > totalPages) currentPage = totalPages;
         updatePagination();
       }
 
-      function updatePagination() {
-        const isAllSelected = itemsPerPageSelect.value === 'all';
-        const totalItems = filteredLogs.length;
-        const totalPages = isAllSelected ? 1 : Math.ceil(totalItems / itemsPerPage);
+      function calculateTotalPages() {
+        if (itemsPerPage === 'all' || filteredLogs.length === 0) {
+          return 1;
+        }
+        return Math.ceil(filteredLogs.length / parseInt(itemsPerPage, 10));
+      }
 
-        const start = isAllSelected ? 0 : (currentPage - 1) * itemsPerPage;
-        const end = isAllSelected ? totalItems : start + itemsPerPage;
+      function updatePagination() {
+        const totalItems = filteredLogs.length;
+        const totalPages = calculateTotalPages();
+        const isAllSelected = itemsPerPage === 'all';
+
+        const numericItemsPerPage = isAllSelected ? totalItems : parseInt(itemsPerPage, 10);
+        const start = isAllSelected ? 0 : (currentPage - 1) * numericItemsPerPage;
+        const end = start + numericItemsPerPage;
         const paginatedItems = filteredLogs.slice(start, end);
 
         renderTable(paginatedItems);
@@ -321,7 +329,11 @@
 
       function renderTable(logs) {
         logTableBody.innerHTML = '';
-        logs.forEach(log => {
+        const numericItemsPerPage = itemsPerPage === 'all' ? filteredLogs.length : parseInt(itemsPerPage, 10);
+        const startIndex = (currentPage - 1) * numericItemsPerPage;
+
+        logs.forEach((log, index) => {
+          const displayNumber = startIndex + index + 1;
           logTableBody.innerHTML += `
             <tr>
               <td>${new Date(log.timestamp).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' })}</td>
@@ -335,7 +347,8 @@
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="/js/main.js"></script>
+  <!-- ไม่ต้องเรียก main.js ซ้ำซ้อน ถ้าโค้ด Dark Mode/Logout อยู่ในหน้านี้แล้ว -->
+  <!-- <script src="/js/main.js"></script> -->
 </body>
 
 </html>
