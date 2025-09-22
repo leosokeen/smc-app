@@ -262,16 +262,23 @@
       }
 
       function calculateTotalPages() {
-        if (itemsPerPage === 'all' || filteredLogs.length === 0) {
+        // 1. ตรวจสอบค่า 'all' แบบไม่สนตัวพิมพ์เล็ก/ใหญ่
+        if (String(itemsPerPage).toLowerCase() === 'all') {
           return 1;
         }
-        return Math.ceil(filteredLogs.length / parseInt(itemsPerPage, 10));
+        // 2. ถ้าไม่มีข้อมูลเลย ก็มีแค่ 1 หน้า
+        if (filteredLogs.length === 0) {
+          return 1;
+        }
+        // 3. ทำการคำนวณเมื่อแน่ใจแล้วว่าเป็นตัวเลข
+        const numericItemsPerPage = parseInt(itemsPerPage, 10);
+        return Math.ceil(filteredLogs.length / numericItemsPerPage);
       }
 
       function updatePagination() {
         const totalItems = filteredLogs.length;
         const totalPages = calculateTotalPages();
-        const isAllSelected = itemsPerPage === 'all';
+        const isAllSelected = String(itemsPerPage).toLowerCase() === 'all';
 
         const numericItemsPerPage = isAllSelected ? totalItems : parseInt(itemsPerPage, 10);
 
